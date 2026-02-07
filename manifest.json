@@ -1,0 +1,45 @@
+{
+  "name": "蜜月之旅 - 瑞士+義大利",
+  "short_name": "蜜月之旅",
+  "description": "2026年2月18日-3月5日 瑞士+義大利16天蜜月旅行資訊",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8F9",
+  "theme_color": "#E91E63",
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["travel", "lifestyle"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "行程總覽",
+      "url": "./schedule.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "打包清單",
+      "url": "./packing.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "靈感任務",
+      "url": "./missions.html",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

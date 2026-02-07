@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#E91E63">
+  <meta name="description" content="蜜月之旅行程總覽：義大利與瑞士。航班、住宿、打包、花費與每日行程一站整理。">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>蜜月之旅 - 瑞士+義大利 🍊🍎</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="container" role="main">
+    <!-- 封面照片區域 -->
+    <div class="cover-section" id="cover-section">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 狀態區塊 -->
+    <div class="card" id="trip-status">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 天氣與當地時間 -->
+    <div class="card" id="weather-time">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 貼心提醒 -->
+    <div id="reminder">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 快捷連結 -->
+    <div class="quick-links">
+      <a href="flights.html" class="quick-link">
+        <span class="quick-link-icon">✈️</span>
+        <span class="quick-link-text">航班</span>
+      </a>
+      <a href="hotels.html" class="quick-link">
+        <span class="quick-link-icon">🏨</span>
+        <span class="quick-link-text">住宿</span>
+      </a>
+      <a href="packing.html" class="quick-link">
+        <span class="quick-link-icon">🧳</span>
+        <span class="quick-link-text">打包</span>
+      </a>
+      <a href="tips.html" class="quick-link">
+        <span class="quick-link-icon">💡</span>
+        <span class="quick-link-text">須知</span>
+      </a>
+    </div>
+
+    <!-- 今日行程 -->
+    <div class="card" id="today-activities">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 今日住宿 -->
+    <div id="today-hotel">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 旅行花費預覽 -->
+    <div class="card" id="expense-preview">
+      <!-- 由 JS 動態填充 -->
+    </div>
+  </main>
+
+  <noscript style="display:block;padding:12px;margin:12px;border-radius:12px;background:#fff3f6;color:#333;">此網站需要啟用 JavaScript 才能正常顯示內容。</noscript>
+
+  <!-- 底部導航 -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item active">
+      <img src="images/nav-home.svg" alt="" class="nav-icon-img">
+      <span>首頁</span>
+    </a>
+    <a href="schedule.html" class="nav-item">
+      <img src="images/nav-schedule.svg" alt="" class="nav-icon-img">
+      <span>行程</span>
+    </a>
+    <a href="packing.html" class="nav-item">
+      <img src="images/nav-packing.svg" alt="" class="nav-icon-img">
+      <span>打包</span>
+    </a>
+    <a href="expenses.html" class="nav-item">
+      <img src="images/nav-expense.svg" alt="" class="nav-icon-img">
+      <span>花費</span>
+    </a>
+    <a href="tips.html" class="nav-item">
+      <img src="images/nav-more.svg" alt="" class="nav-icon-img">
+      <span>更多</span>
+    </a>
+  </nav>
+
+  <!-- 分享按鈕 -->
+  <button class="fab-share" onclick="Share.showShareMenu()" aria-label="分享">
+    📤
+  </button>
+
+  <script src="js/data.js"></script>
+  <script src="js/reminders.js"></script>
+  <script src="js/expenses.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
