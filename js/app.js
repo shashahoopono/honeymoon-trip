@@ -101,10 +101,21 @@ const App = {
     const coverEl = document.getElementById('cover-section');
     if (coverEl) {
       coverEl.innerHTML = `
-        <div class="cover-photo" style="background-image: url('images/Cover.png')">
-          <div class="cover-overlay">
-            <p>🍊🍎 瑞士 + 義大利 💕<br/>蜜月之旅</p>
+        <div class="cover-photo" style="background-image: url('images/Cover.png')"></div>
+        <div style="
+          margin: 16px 0;
+          background: #ffffff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          border-radius: 16px;
+          padding: 20px;
+          text-align: center;
+        ">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <span style="font-size: 20px;">🍊🍎</span>
+            <span style="font-size: 17px; font-weight: 600; color: #333;">瑞士·義大利蜜月之旅</span>
           </div>
+          <div style="width: 40px; height: 1px; background: #ddd; margin: 10px auto;"></div>
+          <div style="font-size: 13px; color: #888;">2026/2/18 - 3/5 · 16 Days</div>
         </div>
       `;
     }
@@ -540,6 +551,9 @@ const App = {
       '台北': 'Asia/Taipei',
       '新加坡': 'Asia/Singapore',
       '蘇黎世': 'Europe/Zurich',
+      '蘇黎世/瑞士': 'Europe/Zurich',
+      '瑞士': 'Europe/Zurich',
+      '蘇黎世→新加坡': 'Europe/Zurich',
       '乘車一日': 'Europe/Zurich',
       '乘車中': 'Europe/Zurich',
       '盧森': 'Europe/Zurich',
@@ -1672,7 +1686,7 @@ const App = {
         `;
 
         typeTickets.forEach((ticket, idx) => {
-          html += this.renderTicketItem(ticket, typeInfo, idx + 1, idx === typeTickets.length - 1);
+          html += this.renderTicketItem(ticket, typeInfo, idx + 1);
         });
 
         html += `
@@ -1716,21 +1730,20 @@ const App = {
     localStorage.setItem(`ticket_cat_${typeKey}`, isExpanded ? 'expanded' : 'collapsed');
   },
 
-  renderTicketItem(ticket, typeInfo, seqNum, isLast = false) {
+  renderTicketItem(ticket, typeInfo, seqNum) {
     const images = ticket.images || [];
     const hasImages = images.length > 0;
 
     // 票券項目（含序號）
     let html = `
-      <div class="ticket-item ${isLast ? '' : 'has-divider'}" data-ticket-id="${ticket.id}">
+      <div class="ticket-item" data-ticket-id="${ticket.id}">
         <div class="ticket-item-header">
-          <h4 class="ticket-name"><span class="ticket-seq">${seqNum}.</span> ${ticket.name}</h4>
+          <span class="ticket-name"><span class="ticket-seq">${seqNum}.</span> ${ticket.name}</span>
           <button class="add-btn" onclick="App.editTicket(${ticket.id})">編輯</button>
         </div>
         <div class="ticket-info-row">
           ${ticket.date ? `<span class="ticket-date">📅 ${this.formatTicketDate(ticket.date)}</span>` : ''}
           ${ticket.location ? `<span class="ticket-location">📍 ${ticket.location}</span>` : ''}
-          ${hasImages ? `<span class="ticket-images-count">🖼️ ${images.length}</span>` : ''}
         </div>
         ${ticket.note ? `<p class="ticket-note">${ticket.note}</p>` : ''}
     `;

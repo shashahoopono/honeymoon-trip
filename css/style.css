@@ -1176,6 +1176,7 @@ body {
 
 /* === 封面照片區域 === */
 .cover-section {
+  position: relative;
   margin: -16px -16px 16px -16px;
 }
 
@@ -2798,8 +2799,9 @@ body {
    =================================================================== */
 
 .cover-section{
+  position: relative;
   border-radius: 22px;
-  overflow: hidden;
+  overflow: visible;
   box-shadow: 0 12px 34px rgba(0,0,0,.12);
   border: 1px solid rgba(255,255,255,.55);
   background: rgba(255,255,255,.18);
@@ -2807,9 +2809,12 @@ body {
 }
 
 .cover-photo{
+  position: relative;
   height: 220px;
-  transform: scale(1.03);
+  background-size: cover;
   background-position: center;
+  border-radius: 22px;
+  overflow: hidden;
 }
 
 .cover-overlay{
@@ -2841,6 +2846,71 @@ body {
   box-shadow: 0 10px 22px rgba(0,0,0,.22);
 }
 .cover-edit-btn:active{ transform: scale(.98); }
+
+/* === 封面標題徽章 === */
+.cover-title-badge {
+  position: relative;
+  z-index: 10;
+  margin: -44px auto 16px !important;
+  width: fit-content;
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 16px 28px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  text-align: center;
+  min-width: 280px;
+  max-width: 90%;
+}
+
+.badge-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.badge-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.badge-text {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333333;
+  letter-spacing: 0.5px;
+}
+
+.badge-divider {
+  width: 70%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #dddddd, transparent);
+  margin: 10px auto;
+}
+
+.badge-sub {
+  font-size: 12px;
+  font-weight: 500;
+  color: #888888;
+  letter-spacing: 1px;
+}
+
+/* 深色模式適配 */
+@media (prefers-color-scheme: dark) {
+  .cover-title-badge {
+    background: rgba(45, 45, 45, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .badge-text {
+    color: #fff;
+  }
+
+  .badge-sub {
+    color: #999;
+  }
+}
 
 /* 首頁幾個大區塊：更一致的卡片感 */
 #trip-status, #today-activities, #today-hotel, #reminder, #expense-preview{
