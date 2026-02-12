@@ -34,6 +34,7 @@
 html {
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -45,6 +46,7 @@ body {
   line-height: 1.6;
   padding-bottom: calc(var(--nav-height) + 20px);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* === 容器 === */
@@ -52,6 +54,8 @@ body {
   max-width: 480px;
   margin: 0 auto;
   padding: 16px;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
 /* === 頁面頭部 === */
@@ -655,6 +659,7 @@ body {
   padding: 16px;
   border-radius: var(--radius);
   margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 .hotel-info-card h3 {
@@ -1399,7 +1404,8 @@ body {
 }
 
 .item-delete,
-.item-delete-small {
+.item-delete-small,
+.item-edit {
   background: none;
   border: none;
   color: var(--text-muted);
@@ -1413,6 +1419,7 @@ body {
 }
 
 .packing-item:hover .item-delete,
+.packing-item:hover .item-edit,
 .mission-item:hover .mission-delete {
   opacity: 1;
   pointer-events: auto;
@@ -1423,6 +1430,142 @@ body {
   color: #e53935;
   background: #ffebee;
   border-radius: 4px;
+}
+
+.item-edit:hover {
+  color: #1976d2;
+  background: #e3f2fd;
+  border-radius: 4px;
+}
+
+/* === 我的筆記優化樣式 === */
+.note-item {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 8px !important;
+}
+
+.note-item .tips-item-content {
+  width: 100%;
+}
+
+.note-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+}
+
+.note-content {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+.note-time {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.note-actions {
+  display: flex;
+  gap: 4px;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+}
+
+.item-edit-small {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: all 0.2s;
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.note-item:hover .item-edit-small,
+.note-item:hover .item-delete-small {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tips-list.editing .note-item .item-edit-small,
+.tips-list.editing .note-item .item-delete-small {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.item-edit-small:hover {
+  color: #1976d2;
+  background: #e3f2fd;
+}
+
+/* 筆記數量標籤 */
+.note-count {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* 筆記搜尋欄 */
+.note-search-bar {
+  position: relative;
+  margin: 12px 0;
+  /* 防止被拖曳功能干擾 */
+  user-select: text;
+}
+
+.note-search-bar input {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  background: var(--surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  /* 確保可以正常輸入 */
+  -webkit-user-select: text;
+  user-select: text;
+  cursor: text;
+}
+
+.note-search-bar input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.1);
+}
+
+.note-search-clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  border-radius: 4px;
+}
+
+.note-search-clear:hover {
+  background: #f5f5f5;
+  color: var(--text-primary);
+}
+
+/* 搜尋關鍵字高亮 */
+.note-item mark {
+  background: #fff176;
+  color: inherit;
+  padding: 0 2px;
+  border-radius: 2px;
 }
 
 .packing-item {
@@ -2922,6 +3065,54 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* 旅途中狀態卡片 - 移除 padding 讓橫幅貼邊 */
+#trip-status {
+  padding: 0 !important;
+  overflow: hidden !important;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  /* 確保 border-radius 內的內容不溢出 */
+  isolation: isolate;
+}
+#trip-status::before {
+  display: none;
+}
+#trip-status .trip-day-counter,
+#trip-status .today-title,
+#trip-status .today-city,
+#trip-status .btn {
+  margin-left: 16px;
+  margin-right: 16px;
+}
+#trip-status .btn {
+  margin-bottom: 16px;
+}
+#trip-status .trip-day-counter {
+  padding-top: 16px;
+}
+
+/* 旅途中 Header GIF 橫幅 */
+.trip-header-banner {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #FCE4EC, #FFF3E0);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border-radius: 16px 16px 0 0;
+  display: block;
+}
+.trip-header-banner img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+  padding: 0;
+}
+
 /* 今日行程：每項像小卡片 */
 .activity-item{
   padding: 10px 12px;
@@ -3505,10 +3696,11 @@ body:has(.test-mode-indicator) {
 .ticket-item {
   padding: 14px 16px;
   position: relative;
+  border-bottom: 1px solid var(--border);
 }
 
-.ticket-item.has-divider {
-  border-bottom: 1px solid var(--border);
+.ticket-item:last-child {
+  border-bottom: none;
 }
 
 .ticket-item-header {
@@ -3516,12 +3708,20 @@ body:has(.test-mode-indicator) {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.ticket-item-header .btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 0.8rem;
 }
 
 .ticket-name {
   font-size: 1rem;
   font-weight: 600;
+  flex: 1;
+  min-width: 0;
   margin: 0;
   color: var(--text);
   flex: 1;
@@ -4359,5 +4559,521 @@ body:has(.test-mode-indicator) {
 
 .upload-empty p {
   font-size: 0.85rem;
+}
+
+/* === 票券頁面優化（現代化 UI） === */
+
+/* 工具列 - 現代搜尋框 */
+.ticket-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  /* 測試：紅色邊框 - 如果看到這個表示 CSS 有載入 */
+  border: 5px solid red !important;
+  padding: 10px !important;
+}
+
+.ticket-search {
+  flex: 1;
+}
+
+.ticket-search input {
+  width: 100%;
+  height: 44px;
+  padding: 0 18px;
+  background: #F5F5F5;
+  border: none;
+  border-radius: 22px;
+  font-size: 0.95rem;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.ticket-search input:focus {
+  background: #EEEEEE;
+  box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+}
+
+.ticket-search input::placeholder {
+  color: #999;
+}
+
+/* 檢視模式切換 - 藥丸形狀 */
+.ticket-view-tabs {
+  display: flex;
+  gap: 6px;
+  background: #F0F0F0;
+  border-radius: 25px;
+  padding: 5px;
+  margin-bottom: 16px;
+}
+
+.view-tab {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.view-tab:hover {
+  color: var(--text);
+}
+
+.view-tab.active {
+  background: linear-gradient(135deg, #E91E63, #FF9800);
+  color: white;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+}
+
+/* 日期快捷列 */
+.ticket-date-shortcuts {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 16px;
+  margin-bottom: 8px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ticket-date-shortcuts::-webkit-scrollbar {
+  display: none;
+}
+
+.date-shortcut {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  background: var(--surface);
+  border: none;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.date-shortcut:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.date-shortcut.active {
+  background: linear-gradient(135deg, #E91E63, #FF9800);
+  color: white;
+  box-shadow: 0 3px 10px rgba(233, 30, 99, 0.3);
+}
+
+.date-shortcut.today {
+  border: 2px solid var(--secondary);
+}
+
+.date-shortcut.today.active {
+  background: linear-gradient(135deg, #FF9800, #FFC107);
+  border: none;
+}
+
+.date-shortcut-day {
+  font-weight: 600;
+}
+
+.date-shortcut-date {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+/* 票券分組標題 */
+.ticket-group {
+  margin-bottom: 24px;
+}
+
+.ticket-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: none;
+  margin-bottom: 14px;
+}
+
+.ticket-group-header.today {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+  margin: 0 -16px 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.ticket-group-icon {
+  font-size: 1.3rem;
+}
+
+.ticket-group-title {
+  flex: 1;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ticket-group-count {
+  font-size: 0.8rem;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+/* 票券卡片 - 現代化設計 */
+.ticket-card {
+  background: var(--surface);
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  margin-bottom: 14px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ticket-card:active {
+  transform: scale(0.98);
+}
+
+.ticket-card.used {
+  opacity: 0.6;
+  filter: grayscale(1);
+}
+
+.ticket-card-main {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 14px;
+  cursor: pointer;
+}
+
+/* 縮圖鎖死尺寸 */
+.ticket-card-thumb {
+  width: 60px;
+  height: 60px;
+  min-width: 60px;
+  min-height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #F8BBD9, #FFE0B2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ticket-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover !important;
+}
+
+.ticket-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ticket-card-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ticket-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.ticket-card-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ticket-card-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ticket-used-badge {
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  color: white;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.ticket-card-arrow {
+  color: var(--text-muted);
+  font-size: 1.3rem;
+  transition: transform 0.2s ease;
+}
+
+/* 票券詳情展開 */
+.ticket-card-details {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  margin-top: 0;
+}
+
+.ticket-card.expanded .ticket-card-details {
+  display: block;
+}
+
+.ticket-card.expanded .ticket-card-arrow {
+  transform: rotate(90deg);
+}
+
+.ticket-card.expanded {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.ticket-detail-note {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin: 14px 0;
+  padding: 12px 14px;
+  background: #F9F9F9;
+  border-radius: 12px;
+  border-left: 3px solid var(--secondary);
+}
+
+/* 票券詳情圖片（使用 photo-gallery 3欄網格） */
+.ticket-card-details .photo-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.ticket-card-details .photo-gallery .photo-item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ticket-card-details .photo-gallery .photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ticket-card-details .photo-gallery .photo-add {
+  aspect-ratio: 1;
+  border-radius: 10px;
+}
+
+/* 票券按鈕 - 統一漸層風格 */
+.ticket-card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.ticket-card-actions .btn {
+  flex: 1;
+  justify-content: center;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 10px 12px;
+}
+
+.ticket-card-actions .btn:first-child:not(.btn-outline) {
+  background: linear-gradient(135deg, #4CAF50, #66BB6A);
+  border: none;
+}
+
+/* 空狀態 */
+.ticket-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.ticket-empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+.ticket-empty-state p {
+  font-size: 1rem;
+  margin-bottom: 20px;
+}
+
+.ticket-empty-state .btn {
+  background: linear-gradient(135deg, #E91E63, #FF9800);
+  border: none;
+  padding: 12px 28px;
+  border-radius: 25px;
+  font-weight: 600;
+}
+
+/* 新增票券懸浮按鈕 (FAB) */
+.ticket-fab {
+  position: fixed;
+  bottom: calc(var(--nav-height) + 20px + var(--safe-bottom));
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, #E91E63, #FF9800);
+  border: none;
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+  z-index: 100;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticket-fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+}
+
+.ticket-fab:active {
+  transform: scale(0.95);
+}
+  margin-bottom: 16px;
+}
+
+/* Day 頁面今日票券區塊（現代化設計） */
+.day-ticket-item {
+  background: var(--surface);
+  border: none;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.day-ticket-item:active {
+  transform: scale(0.98);
+}
+
+.day-ticket-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+}
+
+.day-ticket-icon {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #F8BBD9, #FFE0B2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.day-ticket-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.day-ticket-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.day-ticket-meta {
+  font-size: 0.8rem;
+  color: var(--text-light);
+  line-height: 1.4;
+}
+
+/* Day 票券圖片畫廊（3欄網格） */
+.day-ticket-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.day-ticket-gallery .photo-item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.day-ticket-gallery .photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+/* 票券快速檢視彈窗 */
+.ticket-quickview-info {
+  margin-bottom: 16px;
+}
+
+.ticket-quickview-info p {
+  margin: 6px 0;
+  font-size: 0.95rem;
+}
+
+.ticket-quickview-note {
+  color: var(--text-light);
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #F9F9F9;
+  border-radius: 10px;
+}
+
+.ticket-quickview-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 16px;
+  margin-bottom: 20px;
+}
+
+.ticket-quickview-gallery .photo-item {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ticket-quickview-gallery .photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
 }
 

@@ -1,5 +1,5 @@
 // Service Worker for 蜜月旅遊網站
-const CACHE_NAME = 'honeymoon-trip-v18';
+const CACHE_NAME = 'honeymoon-trip-v36';
 
 // 需要快取的資源列表
 const ASSETS_TO_CACHE = [
@@ -10,6 +10,7 @@ const ASSETS_TO_CACHE = [
   './hotels.html',
   './packing.html',
   './tips.html',
+  './tickets.html',
   './expenses.html',
   './day-1.html',
   './day-2.html',
@@ -40,14 +41,16 @@ const ASSETS_TO_CACHE = [
   './icons/icon-512.png',
   './images/nav-home.svg',
   './images/nav-schedule.svg',
-  './images/nav-packing.svg',
   './images/nav-expense.svg',
+  './images/nav-ticket.svg',
   './images/nav-more.svg',
   './images/hero-pattern.svg',
   './images/bg-pattern.svg',
   './images/card-deco.svg',
   './images/travel-plane.svg',
-  './images/travel-heart.svg'
+  './images/travel-heart.svg',
+  './images/Cover.png',
+  './images/header.gif'
 ];
 
 // 安裝事件 - 快取所有資源

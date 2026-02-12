@@ -320,6 +320,18 @@ const Editor = {
     return data;
   },
 
+  updatePackingItem(itemId, category, item, note) {
+    const data = this.getCustomPacking();
+    const idx = data.items.findIndex(i => i.id === itemId);
+    if (idx !== -1) {
+      data.items[idx].category = category;
+      data.items[idx].item = item;
+      data.items[idx].note = note;
+      this.saveCustomPacking(data);
+    }
+    return data;
+  },
+
   hideOriginalPackingItem(category, index) {
     const data = this.getCustomPacking();
     const key = `${category}-${index}`;
@@ -398,6 +410,22 @@ const Editor = {
     if (tips[category]) {
       tips[category] = tips[category].filter(t => t.id !== tipId);
       this.saveCustomTips(tips);
+    }
+    return tips;
+  },
+
+  updateCustomTip(category, tipId, updates) {
+    const tips = this.getCustomTips();
+    if (tips[category]) {
+      const tipIndex = tips[category].findIndex(t => t.id === tipId);
+      if (tipIndex !== -1) {
+        tips[category][tipIndex] = {
+          ...tips[category][tipIndex],
+          ...updates,
+          updatedAt: new Date().toISOString()
+        };
+        this.saveCustomTips(tips);
+      }
     }
     return tips;
   },
@@ -541,7 +569,17 @@ const Editor = {
 
   getCardOrder() {
     const saved = localStorage.getItem(this.CARD_ORDER_KEY);
-    return saved ? JSON.parse(saved) : ['lounges', 'dining', 'apps', 'tickets', 'important-tickets', 'notes'];
+    const defaultOrder = ['notes', 'lounges', 'dining', 'apps', 'tickets', 'important-tickets'];
+    if (!saved) return defaultOrder;
+
+    // 確保 notes 在最上方
+    let order = JSON.parse(saved);
+    if (order[0] !== 'notes') {
+      order = order.filter(id => id !== 'notes');
+      order.unshift('notes');
+      this.saveCardOrder(order);
+    }
+    return order;
   },
 
   saveCardOrder(order) {

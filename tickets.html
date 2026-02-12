@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#E91E63">
+  <title>重要票券 - 蜜月之旅</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css?v=37">
+  <style>
+    /* === 票券頁面現代化 UI（內聯樣式） === */
+
+    /* 工具列 - 現代搜尋框 */
+    .ticket-toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .ticket-search { flex: 1; }
+    .ticket-search input {
+      width: 100%;
+      height: 44px;
+      padding: 0 18px;
+      background: #F5F5F5;
+      border: none;
+      border-radius: 22px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .ticket-search input:focus {
+      background: #EEEEEE;
+      box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+    }
+    .ticket-search input::placeholder { color: #999; }
+
+    /* 檢視模式切換 - 藥丸形狀 */
+    .ticket-view-tabs {
+      display: flex;
+      gap: 6px;
+      background: #F0F0F0;
+      border-radius: 25px;
+      padding: 5px;
+      margin-bottom: 16px;
+    }
+    .view-tab {
+      flex: 1;
+      padding: 10px 12px;
+      border: none;
+      background: transparent;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .view-tab:hover { color: #333; }
+    .view-tab.active {
+      background: linear-gradient(135deg, #E91E63, #FF9800);
+      color: white;
+      box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3);
+    }
+
+    /* 日期快捷列 */
+    .ticket-date-shortcuts {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 4px 2px 16px;
+      margin-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .ticket-date-shortcuts::-webkit-scrollbar { display: none; }
+    .date-shortcut {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      background: #fff;
+      border: none;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+    .date-shortcut:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .date-shortcut.active {
+      background: linear-gradient(135deg, #E91E63, #FF9800);
+      color: white;
+      box-shadow: 0 3px 10px rgba(233, 30, 99, 0.3);
+    }
+    .date-shortcut.today { border: 2px solid #FF9800; }
+    .date-shortcut.today.active {
+      background: linear-gradient(135deg, #FF9800, #FFC107);
+      border: none;
+    }
+    .date-shortcut-day { font-weight: 600; }
+    .date-shortcut-date { font-size: 0.75rem; opacity: 0.85; }
+
+    /* 票券分組標題 */
+    .ticket-group { margin-bottom: 24px; }
+    .ticket-group-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 0;
+      margin-bottom: 14px;
+    }
+    .ticket-group-header.today {
+      background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 193, 7, 0.1));
+      margin: 0 -16px 14px;
+      padding: 14px 16px;
+      border-radius: 12px;
+    }
+    .ticket-group-icon { font-size: 1.3rem; }
+    .ticket-group-title {
+      flex: 1;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #333;
+    }
+    .ticket-group-count {
+      font-size: 0.8rem;
+      color: #E91E63;
+      background: #F8BBD9;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+
+    /* 票券卡片 - 現代化設計 */
+    .ticket-card {
+      background: #fff;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      margin-bottom: 14px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ticket-card:active { transform: scale(0.98); }
+    .ticket-card.used {
+      opacity: 0.6;
+      filter: grayscale(1);
+    }
+    .ticket-card-main {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      gap: 14px;
+      cursor: pointer;
+    }
+    .ticket-card-thumb {
+      width: 60px;
+      height: 60px;
+      min-width: 60px;
+      min-height: 60px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #F8BBD9, #FFE0B2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .ticket-card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover !important;
+    }
+    .ticket-card-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ticket-card-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ticket-card-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .ticket-card-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ticket-card-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .ticket-used-badge {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+      color: white;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .ticket-card-arrow {
+      color: #999;
+      font-size: 1.3rem;
+      transition: transform 0.2s ease;
+    }
+
+    /* 票券詳情展開 */
+    .ticket-card-details {
+      display: none;
+      padding: 0 16px 16px;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+    .ticket-card.expanded .ticket-card-details { display: block; }
+    .ticket-card.expanded .ticket-card-arrow { transform: rotate(90deg); }
+    .ticket-card.expanded { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .ticket-detail-note {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: #F9F9F9;
+      border-radius: 12px;
+      border-left: 3px solid #FF9800;
+    }
+
+    /* 票券詳情圖片 */
+    .ticket-card-details .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .ticket-card-details .photo-gallery .photo-item {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .ticket-card-details .photo-gallery .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .ticket-card-details .photo-gallery .photo-add {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      border: 2px dashed #ddd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #999;
+    }
+    .ticket-card-details .photo-gallery .photo-add:hover {
+      border-color: #E91E63;
+      color: #E91E63;
+    }
+
+    /* 票券按鈕 */
+    .ticket-card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .ticket-card-actions .btn {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 10px 12px;
+      border: 1px solid #E91E63;
+      background: transparent;
+      color: #E91E63;
+      cursor: pointer;
+    }
+    .ticket-card-actions .btn:first-child {
+      background: linear-gradient(135deg, #4CAF50, #66BB6A);
+      border: none;
+      color: white;
+    }
+
+    /* 空狀態 */
+    .ticket-empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    .ticket-empty-state .empty-icon {
+      font-size: 4rem;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+    .ticket-empty-state p {
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+    .ticket-empty-state .btn {
+      background: linear-gradient(135deg, #E91E63, #FF9800);
+      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+    }
+
+    /* 新增票券懸浮按鈕 (FAB) */
+    .ticket-fab {
+      position: fixed;
+      bottom: calc(60px + 20px);
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, #E91E63, #FF9800);
+      border: none;
+      border-radius: 50%;
+      box-shadow: 0 4px 16px rgba(233, 30, 99, 0.4);
+      color: white;
+      font-size: 1.8rem;
+      cursor: pointer;
+      z-index: 100;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ticket-fab:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(233, 30, 99, 0.5);
+    }
+    .ticket-fab:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <a href="index.html" class="back-btn">← 返回首頁</a>
+      <h1>🎫 重要票券</h1>
+      <p>登機證、門票、車票一站管理</p>
+    </div>
+
+    <!-- 搜尋框 -->
+    <div class="ticket-toolbar">
+      <div class="ticket-search">
+        <input type="text" id="ticket-search-input" placeholder="🔍 搜尋票券名稱、地點..." oninput="App.filterTickets()">
+      </div>
+    </div>
+
+    <!-- 檢視模式切換 -->
+    <div class="ticket-view-tabs">
+      <button class="view-tab active" data-view="date" onclick="App.switchTicketView('date')">📅 依日期</button>
+      <button class="view-tab" data-view="type" onclick="App.switchTicketView('type')">🏷️ 依類型</button>
+      <button class="view-tab" data-view="city" onclick="App.switchTicketView('city')">📍 依城市</button>
+    </div>
+
+    <!-- 日期快捷列（依日期檢視時顯示） -->
+    <div class="ticket-date-shortcuts" id="ticket-date-shortcuts">
+      <!-- 由 JS 動態填充 -->
+    </div>
+
+    <!-- 票券列表 -->
+    <div id="tickets-list">
+      <!-- 由 JS 動態填充 -->
+    </div>
+  </div>
+
+  <!-- 底部導航 -->
+  <nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+      <img src="images/nav-home.svg" alt="" class="nav-icon-img">
+      <span>首頁</span>
+    </a>
+    <a href="schedule.html" class="nav-item">
+      <img src="images/nav-schedule.svg" alt="" class="nav-icon-img">
+      <span>行程</span>
+    </a>
+    <a href="expenses.html" class="nav-item">
+      <img src="images/nav-expense.svg" alt="" class="nav-icon-img">
+      <span>花費</span>
+    </a>
+    <a href="tickets.html" class="nav-item active">
+      <img src="images/nav-ticket.svg" alt="" class="nav-icon-img">
+      <span>票券</span>
+    </a>
+    <a href="tips.html" class="nav-item">
+      <img src="images/nav-more.svg" alt="" class="nav-icon-img">
+      <span>更多</span>
+    </a>
+  </nav>
+
+  <!-- 新增票券懸浮按鈕 -->
+  <button class="ticket-fab" onclick="App.showAddTicketModal()" aria-label="新增票券">
+    +
+  </button>
+
+  <script src="js/data.js"></script>
+  <script src="js/reminders.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

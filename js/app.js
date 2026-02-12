@@ -83,6 +83,9 @@ const App = {
       case 'missions.html':
         this.initMissionsPage();
         break;
+      case 'tickets.html':
+        this.initTicketsPage();
+        break;
     }
 
     // 如果是 day-X.html 頁面
@@ -146,6 +149,9 @@ const App = {
         // 旅途中 - 顯示第幾天 + 跳轉按鈕
         const todaySchedule = getTodaySchedule();
         statusEl.innerHTML = `
+          <div class="trip-header-banner" style="width:100%;max-width:100%;overflow:hidden;">
+            <img src="images/header.gif" alt="" style="width:100%;max-width:100%;height:auto;display:block;">
+          </div>
           <div class="trip-day-counter">
             <div class="day-counter-badge">旅行第 <span class="day-num-large">${dayNum}</span> 天</div>
             <p class="day-counter-date">${todaySchedule.date} (${todaySchedule.weekday})</p>
@@ -322,7 +328,6 @@ const App = {
               <h3>${act.activity}</h3>
               <p class="timeline-location">${act.location}</p>
               ${act.note ? `<p class="timeline-note">${act.note}</p>` : ''}
-              ${act.booked ? '<span class="badge booked">已預訂</span>' : ''}
               ${hasAddress ? `<a href="${mapUrl}" target="_blank" class="btn btn-small btn-map">📍 導航</a>` : ''}
             </div>
           </div>
@@ -406,6 +411,9 @@ const App = {
       this.renderDayNotesCard(notesEl, dayNum);
     }
 
+    // 當日票券
+    this.renderDayTickets();
+
     // 導航按鈕
     const navEl = document.getElementById('day-nav');
     if (navEl) {
@@ -482,7 +490,7 @@ const App = {
     modal.innerHTML = `
       <div class="edit-modal-content">
         <h3>📌 編輯今日小提醒</h3>
-        <textarea id="edit-reminder-textarea" rows="5" placeholder="輸入今天要注意的事項...">${savedReminder}</textarea>
+        <textarea id="edit-reminder-textarea" rows="5" placeholder="輸入今天要注意的事項..."></textarea>
         <div class="edit-modal-buttons">
           <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
           <button class="btn" onclick="App.saveReminderFromModal(${dayNum})">💾 儲存</button>
@@ -490,7 +498,9 @@ const App = {
       </div>
     `;
     document.body.appendChild(modal);
-    document.getElementById('edit-reminder-textarea').focus();
+    const textarea = document.getElementById('edit-reminder-textarea');
+    textarea.value = savedReminder;
+    textarea.focus();
   },
 
   // 從彈窗儲存提醒
@@ -515,7 +525,7 @@ const App = {
     modal.innerHTML = `
       <div class="edit-modal-content">
         <h3>📝 編輯今日筆記</h3>
-        <textarea id="edit-note-textarea" rows="6" placeholder="記錄今天的心情、趣事...">${savedNote}</textarea>
+        <textarea id="edit-note-textarea" rows="6" placeholder="記錄今天的心情、趣事..."></textarea>
         <div class="edit-modal-buttons">
           <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
           <button class="btn" onclick="App.saveNoteFromModal(${dayNum})">💾 儲存</button>
@@ -523,7 +533,9 @@ const App = {
       </div>
     `;
     document.body.appendChild(modal);
-    document.getElementById('edit-note-textarea').focus();
+    const textarea = document.getElementById('edit-note-textarea');
+    textarea.value = savedNote;
+    textarea.focus();
   },
 
   // 從彈窗儲存筆記
@@ -554,15 +566,23 @@ const App = {
       '蘇黎世/瑞士': 'Europe/Zurich',
       '瑞士': 'Europe/Zurich',
       '蘇黎世→新加坡': 'Europe/Zurich',
+      '新加坡→台北': 'Asia/Singapore',
       '乘車一日': 'Europe/Zurich',
       '乘車中': 'Europe/Zurich',
       '盧森': 'Europe/Zurich',
+      '琉森': 'Europe/Zurich',
       '乘車': 'Europe/Zurich',
       '策馬特': 'Europe/Zurich',
+      '因特拉肯': 'Europe/Zurich',
+      '因特拉肯/少女峰': 'Europe/Zurich',
+      '因特拉肯→琉森→蘇黎世': 'Europe/Zurich',
       '米蘭': 'Europe/Rome',
+      '米蘭→羅馬': 'Europe/Rome',
       '威尼斯': 'Europe/Rome',
       '佛羅倫斯': 'Europe/Rome',
-      '羅馬': 'Europe/Rome'
+      '佛羅倫斯→威尼斯': 'Europe/Rome',
+      '羅馬': 'Europe/Rome',
+      '羅馬→佛羅倫斯': 'Europe/Rome'
     };
 
     // 如果還沒出發或已結束，顯示台北天氣
@@ -627,11 +647,16 @@ const App = {
       '琉森': { lat: 47.05, lon: 8.31 },
       '策馬特': { lat: 46.02, lon: 7.75 },
       '因特拉肯': { lat: 46.69, lon: 7.85 },
+      '因特拉肯/少女峰': { lat: 46.69, lon: 7.85 },
+      '因特拉肯→琉森→蘇黎世': { lat: 47.05, lon: 8.31 },
       '伯恩': { lat: 46.95, lon: 7.45 },
       '米蘭': { lat: 45.46, lon: 9.19 },
+      '米蘭→羅馬': { lat: 41.90, lon: 12.50 },
       '威尼斯': { lat: 45.44, lon: 12.32 },
       '佛羅倫斯': { lat: 43.77, lon: 11.25 },
-      '羅馬': { lat: 41.90, lon: 12.50 }
+      '佛羅倫斯→威尼斯': { lat: 45.44, lon: 12.32 },
+      '羅馬': { lat: 41.90, lon: 12.50 },
+      '羅馬→佛羅倫斯': { lat: 43.77, lon: 11.25 }
     };
 
     const coord = coords[city];
@@ -998,8 +1023,7 @@ const App = {
       electronics: '🔌 電子用品',
       clothing: '👕 衣物',
       toiletries: '🧴 盥洗用品',
-      misc: '📦 其他',
-      custom: '✨ 自訂項目'
+      misc: '📦 其他'
     };
 
     const listEl = document.getElementById('packing-list');
@@ -1009,17 +1033,20 @@ const App = {
     let checkedItems = 0;
     let html = '';
 
-    // 原始清單
+    // 渲染各類別（包含原始項目 + 該類別的自訂項目）
     for (const [key, title] of Object.entries(categories)) {
-      if (key === 'custom') continue;
+      const originalItems = TRIP_DATA.packing[key] || [];
+      const customItemsInCategory = customData.items.filter(i => i.category === key);
 
-      const items = TRIP_DATA.packing[key];
-      if (!items) continue;
+      // 如果該類別沒有任何項目，跳過
+      const hasOriginalItems = originalItems.some((item, idx) => !customData.removed.includes(`${key}-${idx}`));
+      if (!hasOriginalItems && customItemsInCategory.length === 0) continue;
 
       html += `<div class="packing-category"><h3>${title}</h3><ul class="packing-items">`;
-      items.forEach((item, idx) => {
+
+      // 原始項目
+      originalItems.forEach((item, idx) => {
         const itemId = `${key}-${idx}`;
-        // 跳過被移除的項目
         if (customData.removed.includes(itemId)) return;
 
         const checked = saved[itemId] || false;
@@ -1037,13 +1064,9 @@ const App = {
           </li>
         `;
       });
-      html += '</ul></div>';
-    }
 
-    // 自訂項目
-    if (customData.items.length > 0) {
-      html += `<div class="packing-category"><h3>${categories.custom}</h3><ul class="packing-items">`;
-      customData.items.forEach(item => {
+      // 該類別的自訂項目
+      customItemsInCategory.forEach(item => {
         const itemId = `custom-${item.id}`;
         const checked = saved[itemId] || false;
         totalItems++;
@@ -1056,10 +1079,12 @@ const App = {
               <span class="item-name">${item.item}</span>
               ${item.note ? `<span class="item-note">${item.note}</span>` : ''}
             </label>
+            <button class="item-edit" onclick="App.showEditPackingModal(${item.id})">✏️</button>
             <button class="item-delete" onclick="App.removeCustomPackingItem(${item.id})">✕</button>
           </li>
         `;
       });
+
       html += '</ul></div>';
     }
 
@@ -1161,6 +1186,68 @@ const App = {
     document.querySelector('.edit-modal').remove();
     this.initPackingPage();
     Share.showToast('✅ 已新增項目');
+  },
+
+  // 編輯打包項目彈窗
+  showEditPackingModal(itemId) {
+    const customData = Editor.getCustomPacking();
+    const item = customData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const categories = ['documents', 'electronics', 'clothing', 'toiletries', 'misc'];
+    const categoryNames = {
+      documents: '📄 證件文件',
+      electronics: '🔌 電子用品',
+      clothing: '👕 衣物',
+      toiletries: '🧴 盥洗用品',
+      misc: '📦 其他'
+    };
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+      <div class="edit-modal-content">
+        <h3>✏️ 編輯打包項目</h3>
+        <div class="form-group">
+          <label>類別</label>
+          <select id="edit-packing-category">
+            ${categories.map(c => `<option value="${c}" ${c === item.category ? 'selected' : ''}>${categoryNames[c]}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>項目名稱</label>
+          <input type="text" id="edit-packing-item" value="">
+        </div>
+        <div class="form-group">
+          <label>備註（選填）</label>
+          <input type="text" id="edit-packing-note" value="">
+        </div>
+        <div class="edit-modal-buttons">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
+          <button class="btn" onclick="App.updatePackingItem(${itemId})">💾 儲存</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('edit-packing-item').value = item.item;
+    document.getElementById('edit-packing-note').value = item.note || '';
+  },
+
+  // 更新打包項目
+  updatePackingItem(itemId) {
+    const category = document.getElementById('edit-packing-category').value;
+    const item = document.getElementById('edit-packing-item').value.trim();
+    const note = document.getElementById('edit-packing-note').value.trim();
+
+    if (!item) {
+      alert('請輸入項目名稱');
+      return;
+    }
+
+    Editor.updatePackingItem(itemId, category, item, note);
+    document.querySelector('.edit-modal').remove();
+    this.initPackingPage();
+    Share.showToast('✅ 已更新項目');
   },
 
   // 旅遊須知頁面（可編輯版 + 可拖曳排序）
@@ -1331,30 +1418,668 @@ const App = {
     // 自訂筆記
     const notesEl = document.getElementById('tips-notes');
     if (notesEl) {
+      const noteCount = customTips.notes ? customTips.notes.length : 0;
       let html = `
         <div class="card-header-row">
           <span class="drag-handle" title="按住拖曳可調整順序">⋮⋮</span>
-          <h3 style="flex:1;">📝 我的筆記</h3>
+          <h3 style="flex:1;">📝 我的筆記 ${noteCount > 0 ? `<span class="note-count">(${noteCount})</span>` : ''}</h3>
           <div class="card-header-btns">
             <button class="tips-edit-btn" onclick="App.toggleEditMode('notes', this)">編輯</button>
             <button class="add-btn" onclick="App.showAddTipModal('notes')">+ 新增</button>
           </div>
         </div>
+        ${noteCount >= 3 ? `
+        <div class="note-search-bar">
+          <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." oninput="App.filterNotes()" value="${this.noteSearchQuery || ''}">
+          ${this.noteSearchQuery ? '<button class="note-search-clear" onclick="App.clearNoteSearch()">✕</button>' : ''}
+        </div>
+        ` : ''}
       `;
+
       if (customTips.notes && customTips.notes.length > 0) {
-        html += '<ul class="tips-list" id="tips-list-notes">';
-        customTips.notes.forEach(n => {
-          html += `<li class="tips-item" data-item-id="custom-${n.id}">
-            <div class="tips-item-content">${n.content}</div>
-            <button class="item-delete-small" onclick="App.removeCustomTip('notes', ${n.id})">✕</button>
-          </li>`;
-        });
-        html += '</ul>';
+        // 篩選筆記
+        const query = (this.noteSearchQuery || '').toLowerCase();
+        const filteredNotes = query
+          ? customTips.notes.filter(n =>
+              (n.title || '').toLowerCase().includes(query) ||
+              (n.content || '').toLowerCase().includes(query)
+            )
+          : customTips.notes;
+
+        if (filteredNotes.length > 0) {
+          html += '<ul class="tips-list" id="tips-list-notes">';
+          filteredNotes.forEach(n => {
+            // 處理換行顯示
+            let displayContent = (n.content || '').replace(/\n/g, '<br>');
+            let displayTitle = n.title || '';
+
+            // 高亮搜尋關鍵字
+            if (query) {
+              const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+              displayContent = displayContent.replace(regex, '<mark>$1</mark>');
+              displayTitle = displayTitle.replace(regex, '<mark>$1</mark>');
+            }
+
+            // 格式化建立時間
+            const createdDate = n.createdAt ? new Date(n.createdAt).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+            html += `<li class="tips-item note-item" data-item-id="custom-${n.id}">
+              <div class="tips-item-content">
+                ${displayTitle ? `<div class="note-title">${displayTitle}</div>` : ''}
+                <div class="note-content">${displayContent}</div>
+                ${createdDate ? `<div class="note-time">${createdDate}</div>` : ''}
+              </div>
+              <div class="note-actions">
+                <button class="item-edit-small" onclick="App.showEditCustomNote(${n.id})" title="編輯">✏️</button>
+                <button class="item-delete-small" onclick="App.removeCustomTip('notes', ${n.id})">✕</button>
+              </div>
+            </li>`;
+          });
+          html += '</ul>';
+        } else {
+          html += `<p class="tips-empty">找不到符合「${query}」的筆記</p>`;
+        }
       } else {
         html += '<p class="tips-empty">還沒有筆記，點擊「+ 新增」記錄重要事項</p>';
       }
       notesEl.innerHTML = html;
     }
+  },
+
+  // 筆記搜尋狀態
+  noteSearchQuery: '',
+
+  // 搜尋筆記
+  filterNotes() {
+    const input = document.getElementById('note-search-input');
+    this.noteSearchQuery = input ? input.value.trim() : '';
+    this.renderNotesCard();
+  },
+
+  // 清除搜尋
+  clearNoteSearch() {
+    this.noteSearchQuery = '';
+    this.renderNotesCard();
+  },
+
+  // 單獨渲染筆記卡片（不重新渲染整個頁面）
+  renderNotesCard() {
+    const customTips = Editor.getCustomTips();
+    const notesEl = document.getElementById('tips-notes');
+    if (!notesEl) return;
+
+    const noteCount = customTips.notes ? customTips.notes.length : 0;
+    let html = `
+      <div class="card-header-row">
+        <span class="drag-handle" title="按住拖曳可調整順序">⋮⋮</span>
+        <h3 style="flex:1;">📝 我的筆記 ${noteCount > 0 ? `<span class="note-count">(${noteCount})</span>` : ''}</h3>
+        <div class="card-header-btns">
+          <button class="tips-edit-btn" onclick="App.toggleEditMode('notes', this)">編輯</button>
+          <button class="add-btn" onclick="App.showAddTipModal('notes')">+ 新增</button>
+        </div>
+      </div>
+      ${noteCount >= 3 ? `
+      <div class="note-search-bar">
+        <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." oninput="App.filterNotes()" value="${this.noteSearchQuery || ''}">
+        ${this.noteSearchQuery ? '<button class="note-search-clear" onclick="App.clearNoteSearch()">✕</button>' : ''}
+      </div>
+      ` : ''}
+    `;
+
+    if (customTips.notes && customTips.notes.length > 0) {
+      const query = (this.noteSearchQuery || '').toLowerCase();
+      const filteredNotes = query
+        ? customTips.notes.filter(n =>
+            (n.title || '').toLowerCase().includes(query) ||
+            (n.content || '').toLowerCase().includes(query)
+          )
+        : customTips.notes;
+
+      if (filteredNotes.length > 0) {
+        html += '<ul class="tips-list" id="tips-list-notes">';
+        filteredNotes.forEach(n => {
+          let displayContent = (n.content || '').replace(/\n/g, '<br>');
+          let displayTitle = n.title || '';
+
+          if (query) {
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            displayContent = displayContent.replace(regex, '<mark>$1</mark>');
+            displayTitle = displayTitle.replace(regex, '<mark>$1</mark>');
+          }
+
+          const createdDate = n.createdAt ? new Date(n.createdAt).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+          html += `<li class="tips-item note-item" data-item-id="custom-${n.id}">
+            <div class="tips-item-content">
+              ${displayTitle ? `<div class="note-title">${displayTitle}</div>` : ''}
+              <div class="note-content">${displayContent}</div>
+              ${createdDate ? `<div class="note-time">${createdDate}</div>` : ''}
+            </div>
+            <div class="note-actions">
+              <button class="item-edit-small" onclick="App.showEditCustomNote(${n.id})" title="編輯">✏️</button>
+              <button class="item-delete-small" onclick="App.removeCustomTip('notes', ${n.id})">✕</button>
+            </div>
+          </li>`;
+        });
+        html += '</ul>';
+      } else {
+        html += `<p class="tips-empty">找不到符合「${query}」的筆記</p>`;
+      }
+    } else {
+      html += '<p class="tips-empty">還沒有筆記，點擊「+ 新增」記錄重要事項</p>';
+    }
+    notesEl.innerHTML = html;
+
+    // 保持搜尋框焦點
+    if (this.noteSearchQuery) {
+      const input = document.getElementById('note-search-input');
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }
+  },
+
+  // 票券頁面狀態
+  ticketViewMode: 'date',
+  ticketSearchQuery: '',
+
+  // 重要票券獨立頁面
+  initTicketsPage() {
+    // 讀取上次的檢視模式
+    this.ticketViewMode = localStorage.getItem('ticket_view_mode') || 'date';
+    this.ticketSearchQuery = '';
+
+    // 設定 tab 狀態
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.view === this.ticketViewMode);
+    });
+
+    // 渲染日期快捷列
+    this.renderTicketDateShortcuts();
+
+    // 渲染票券列表
+    this.renderTicketsList();
+  },
+
+  // 刷新票券相關頁面（判斷當前頁面）
+  refreshTicketsDisplay() {
+    const page = window.location.pathname.split('/').pop() || 'index.html';
+    if (page === 'tickets.html') {
+      this.renderTicketsList();
+    } else if (page === 'tips.html') {
+      this.initTipsPage();
+    } else if (page.startsWith('day-')) {
+      // 刷新 Day 頁面的票券區塊
+      this.renderDayTickets();
+    }
+  },
+
+  // 切換檢視模式
+  switchTicketView(mode) {
+    this.ticketViewMode = mode;
+    localStorage.setItem('ticket_view_mode', mode);
+
+    // 更新 tab 狀態
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.view === mode);
+    });
+
+    // 顯示/隱藏日期快捷列
+    const shortcuts = document.getElementById('ticket-date-shortcuts');
+    if (shortcuts) {
+      shortcuts.style.display = mode === 'date' ? 'flex' : 'none';
+    }
+
+    this.renderTicketsList();
+  },
+
+  // 搜尋票券
+  filterTickets() {
+    const input = document.getElementById('ticket-search-input');
+    this.ticketSearchQuery = input ? input.value.trim().toLowerCase() : '';
+    this.renderTicketsList();
+  },
+
+  // 渲染日期快捷列
+  renderTicketDateShortcuts() {
+    const container = document.getElementById('ticket-date-shortcuts');
+    if (!container) return;
+
+    const tickets = Editor.getTickets();
+    const today = DateUtils.getTodayStr();
+    const currentDay = DateUtils.getCurrentDayNumber();
+
+    // 收集所有有票券的日期
+    const datesWithTickets = new Set();
+    tickets.forEach(t => {
+      if (t.date) datesWithTickets.add(t.date);
+    });
+
+    // 生成日期按鈕
+    let html = '<button class="date-shortcut active" data-date="all" onclick="App.scrollToDate(\'all\')">全部</button>';
+
+    TRIP_DATA.schedule.forEach(day => {
+      const dateStr = day.date;
+      const hasTickets = datesWithTickets.has(dateStr);
+      const isToday = dateStr === today;
+      const dayLabel = `D${day.day}`;
+      const dateLabel = dateStr.substring(5).replace('-', '/');
+
+      if (hasTickets || isToday) {
+        html += `
+          <button class="date-shortcut ${isToday ? 'today' : ''}" data-date="${dateStr}" onclick="App.scrollToDate('${dateStr}')">
+            <span class="date-shortcut-day">${dayLabel}</span>
+            <span class="date-shortcut-date">${dateLabel}</span>
+          </button>
+        `;
+      }
+    });
+
+    container.innerHTML = html;
+    container.style.display = this.ticketViewMode === 'date' ? 'flex' : 'none';
+  },
+
+  // 滾動到指定日期
+  scrollToDate(date) {
+    // 更新快捷按鈕狀態
+    document.querySelectorAll('.date-shortcut').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.date === date);
+    });
+
+    if (date === 'all') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const target = document.querySelector(`[data-group-date="${date}"]`);
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  },
+
+  // 渲染票券列表
+  renderTicketsList() {
+    const container = document.getElementById('tickets-list');
+    if (!container) return;
+
+    let tickets = Editor.getTickets();
+    const types = Editor.TICKET_TYPES;
+    const today = DateUtils.getTodayStr();
+
+    // 搜尋過濾
+    if (this.ticketSearchQuery) {
+      tickets = tickets.filter(t =>
+        t.name.toLowerCase().includes(this.ticketSearchQuery) ||
+        (t.location && t.location.toLowerCase().includes(this.ticketSearchQuery)) ||
+        (t.note && t.note.toLowerCase().includes(this.ticketSearchQuery))
+      );
+    }
+
+    if (tickets.length === 0) {
+      container.innerHTML = `
+        <div class="ticket-empty-state">
+          <div class="empty-icon">🎫</div>
+          <p>${this.ticketSearchQuery ? '找不到符合的票券' : '尚無票券資料'}</p>
+          ${!this.ticketSearchQuery ? '<button class="btn" onclick="App.showAddTicketModal()">新增票券</button>' : ''}
+        </div>
+      `;
+      return;
+    }
+
+    let html = '';
+
+    if (this.ticketViewMode === 'date') {
+      html = this.renderTicketsByDate(tickets, types, today);
+    } else if (this.ticketViewMode === 'type') {
+      html = this.renderTicketsByType(tickets, types, today);
+    } else if (this.ticketViewMode === 'city') {
+      html = this.renderTicketsByCity(tickets, types, today);
+    }
+
+    container.innerHTML = html;
+  },
+
+  // 依日期渲染
+  renderTicketsByDate(tickets, types, today) {
+    // 按日期分組
+    const grouped = {};
+    const noDate = [];
+
+    tickets.forEach(ticket => {
+      if (ticket.date) {
+        if (!grouped[ticket.date]) grouped[ticket.date] = [];
+        grouped[ticket.date].push(ticket);
+      } else {
+        noDate.push(ticket);
+      }
+    });
+
+    // 排序日期
+    const sortedDates = Object.keys(grouped).sort();
+
+    let html = '';
+
+    sortedDates.forEach(date => {
+      const dayTickets = grouped[date];
+      const isToday = date === today;
+      const dayInfo = TRIP_DATA.schedule.find(d => d.date === date);
+      const dayLabel = dayInfo ? `Day ${dayInfo.day}` : '';
+      const dateLabel = date.substring(5).replace('-', '/');
+      const weekday = dayInfo ? dayInfo.weekday : '';
+
+      html += `
+        <div class="ticket-group" data-group-date="${date}">
+          <div class="ticket-group-header ${isToday ? 'today' : ''}">
+            <span class="ticket-group-icon">📅</span>
+            <span class="ticket-group-title">${dayLabel} ${dateLabel} (${weekday})${isToday ? ' - 今天' : ''}</span>
+            <span class="ticket-group-count">${dayTickets.length}</span>
+          </div>
+          ${dayTickets.map(t => this.renderTicketCard(t, types)).join('')}
+        </div>
+      `;
+    });
+
+    // 無日期的票券
+    if (noDate.length > 0) {
+      html += `
+        <div class="ticket-group" data-group-date="none">
+          <div class="ticket-group-header">
+            <span class="ticket-group-icon">📋</span>
+            <span class="ticket-group-title">未指定日期</span>
+            <span class="ticket-group-count">${noDate.length}</span>
+          </div>
+          ${noDate.map(t => this.renderTicketCard(t, types)).join('')}
+        </div>
+      `;
+    }
+
+    return html;
+  },
+
+  // 依類型渲染
+  renderTicketsByType(tickets, types, today) {
+    const grouped = {};
+
+    tickets.forEach(ticket => {
+      const type = ticket.type || 'other';
+      if (!grouped[type]) grouped[type] = [];
+      grouped[type].push(ticket);
+    });
+
+    let html = '';
+
+    Object.keys(types).forEach(typeKey => {
+      const typeTickets = grouped[typeKey];
+      if (!typeTickets || typeTickets.length === 0) return;
+
+      // 按日期排序
+      typeTickets.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(a.date) - new Date(b.date);
+      });
+
+      const typeInfo = types[typeKey];
+
+      html += `
+        <div class="ticket-group">
+          <div class="ticket-group-header">
+            <span class="ticket-group-icon">${typeInfo.icon}</span>
+            <span class="ticket-group-title">${typeInfo.label}</span>
+            <span class="ticket-group-count">${typeTickets.length}</span>
+          </div>
+          ${typeTickets.map(t => this.renderTicketCard(t, types, today)).join('')}
+        </div>
+      `;
+    });
+
+    return html;
+  },
+
+  // 依城市渲染
+  renderTicketsByCity(tickets, types, today) {
+    const grouped = {};
+    const noCity = [];
+
+    tickets.forEach(ticket => {
+      if (ticket.location) {
+        if (!grouped[ticket.location]) grouped[ticket.location] = [];
+        grouped[ticket.location].push(ticket);
+      } else {
+        noCity.push(ticket);
+      }
+    });
+
+    // 按城市名稱排序
+    const sortedCities = Object.keys(grouped).sort();
+
+    let html = '';
+
+    sortedCities.forEach(city => {
+      const cityTickets = grouped[city];
+
+      // 按日期排序
+      cityTickets.sort((a, b) => {
+        if (!a.date && !b.date) return 0;
+        if (!a.date) return 1;
+        if (!b.date) return -1;
+        return new Date(a.date) - new Date(b.date);
+      });
+
+      html += `
+        <div class="ticket-group">
+          <div class="ticket-group-header">
+            <span class="ticket-group-icon">📍</span>
+            <span class="ticket-group-title">${city}</span>
+            <span class="ticket-group-count">${cityTickets.length}</span>
+          </div>
+          ${cityTickets.map(t => this.renderTicketCard(t, types, today)).join('')}
+        </div>
+      `;
+    });
+
+    // 無城市的票券
+    if (noCity.length > 0) {
+      html += `
+        <div class="ticket-group">
+          <div class="ticket-group-header">
+            <span class="ticket-group-icon">📋</span>
+            <span class="ticket-group-title">未指定城市</span>
+            <span class="ticket-group-count">${noCity.length}</span>
+          </div>
+          ${noCity.map(t => this.renderTicketCard(t, types, today)).join('')}
+        </div>
+      `;
+    }
+
+    return html;
+  },
+
+  // 渲染單張票券卡片
+  renderTicketCard(ticket, types, today) {
+    const typeInfo = types[ticket.type] || types.other;
+    const images = ticket.images || [];
+    const hasImages = images.length > 0;
+    const thumbSrc = hasImages ? images[0].data : null;
+    const isUsed = ticket.used || false;
+    const isToday = ticket.date === today;
+
+    const dateLabel = ticket.date ? ticket.date.substring(5).replace('-', '/') : '';
+
+    return `
+      <div class="ticket-card ${isUsed ? 'used' : ''}" data-ticket-id="${ticket.id}">
+        <div class="ticket-card-main" onclick="App.toggleTicketCard(${ticket.id})">
+          <div class="ticket-card-thumb">
+            ${thumbSrc ? `<img src="${thumbSrc}" alt="">` : typeInfo.icon}
+          </div>
+          <div class="ticket-card-info">
+            <div class="ticket-card-name">${ticket.name}</div>
+            <div class="ticket-card-meta">
+              ${ticket.date ? `<span>📅 ${dateLabel}</span>` : ''}
+              ${ticket.location ? `<span>📍 ${ticket.location}</span>` : ''}
+            </div>
+          </div>
+          <div class="ticket-card-status">
+            ${isUsed ? '<span class="ticket-used-badge">已使用</span>' : ''}
+            <span class="ticket-card-arrow">›</span>
+          </div>
+        </div>
+        <div class="ticket-card-details">
+          ${ticket.note ? `<div class="ticket-detail-note">${ticket.note}</div>` : ''}
+          ${hasImages ? `
+            <div class="photo-gallery">
+              ${images.map(img => `
+                <div class="photo-item">
+                  <img src="${img.data}" alt="票券截圖" onclick="Editor.viewPhoto('${img.data.replace(/'/g, "\\'")}'); event.stopPropagation();">
+                </div>
+              `).join('')}
+              <div class="photo-add" onclick="App.uploadTicketImageFor(${ticket.id}); event.stopPropagation();">
+                <span>➕</span>
+                <span>新增</span>
+              </div>
+            </div>
+          ` : ''}
+          <div class="ticket-card-actions">
+            <button class="btn btn-small ${isUsed ? 'btn-outline' : ''}" style="${isUsed ? '' : 'background:var(--success);color:white;'}" onclick="App.toggleTicketUsed(${ticket.id}); event.stopPropagation();">
+              ${isUsed ? '標為未使用' : '✓ 已使用'}
+            </button>
+            <button class="btn btn-small btn-outline" onclick="App.editTicket(${ticket.id}); event.stopPropagation();">✏️ 編輯</button>
+            <button class="btn btn-small btn-outline" onclick="App.uploadTicketImageFor(${ticket.id}); event.stopPropagation();">📷</button>
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  // 展開/收合票券卡片
+  toggleTicketCard(ticketId) {
+    const card = document.querySelector(`.ticket-card[data-ticket-id="${ticketId}"]`);
+    if (card) {
+      card.classList.toggle('expanded');
+    }
+  },
+
+  // 標記票券已使用/未使用
+  toggleTicketUsed(ticketId) {
+    const tickets = Editor.getTickets();
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (ticket) {
+      ticket.used = !ticket.used;
+      Editor.saveTickets(tickets);
+      this.renderTicketsList();
+    }
+  },
+
+  // 取得指定日期的票券
+  getTicketsByDate(dateStr) {
+    return Editor.getTickets().filter(t => t.date === dateStr);
+  },
+
+  // 渲染 Day 頁面的票券區塊
+  renderDayTickets() {
+    const container = document.getElementById('day-tickets');
+    if (!container) return;
+
+    const page = window.location.pathname.split('/').pop();
+    const dayNum = parseInt(page.replace('day-', '').replace('.html', ''));
+    const dayInfo = TRIP_DATA.schedule.find(d => d.day === dayNum);
+
+    if (!dayInfo) return;
+
+    const tickets = this.getTicketsByDate(dayInfo.date);
+    const types = Editor.TICKET_TYPES;
+
+    if (tickets.length === 0) {
+      container.innerHTML = `
+        <h3>🎫 今日票券</h3>
+        <div class="photo-empty">
+          <p>📋 今日無票券</p>
+          <button class="btn btn-small" onclick="window.location.href='tickets.html'">
+            ➕ 新增票券
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `<h3>🎫 今日票券</h3>`;
+
+    tickets.forEach(ticket => {
+      const typeInfo = types[ticket.type] || types.other;
+      const images = ticket.images || [];
+      const hasImages = images.length > 0;
+
+      html += `
+        <div class="day-ticket-item" onclick="App.showTicketQuickView(${ticket.id})">
+          <div class="day-ticket-header">
+            <div class="day-ticket-icon">${typeInfo.icon}</div>
+            <div class="day-ticket-info">
+              <div class="day-ticket-name">${ticket.name}</div>
+              ${ticket.location ? `<div class="day-ticket-meta">📍 ${ticket.location}</div>` : ''}
+            </div>
+          </div>
+          ${hasImages ? `
+            <div class="day-ticket-gallery" onclick="event.stopPropagation();">
+              ${images.map(img => `
+                <div class="photo-item">
+                  <img src="${img.data}" alt="票券截圖" onclick="Editor.viewPhoto('${img.data.replace(/'/g, "\\'")}')">
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    });
+
+    html += `
+      <button class="btn btn-small btn-outline" style="width:100%;margin-top:12px;" onclick="window.location.href='tickets.html'">
+        📋 查看所有票券
+      </button>
+    `;
+
+    container.innerHTML = html;
+  },
+
+  // 票券快速檢視
+  showTicketQuickView(ticketId) {
+    const tickets = Editor.getTickets();
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const types = Editor.TICKET_TYPES;
+    const typeInfo = types[ticket.type] || types.other;
+    const images = ticket.images || [];
+    const hasImages = images.length > 0;
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    modal.innerHTML = `
+      <div class="edit-modal-content" style="max-height: 80vh; overflow-y: auto;">
+        <h3>${typeInfo.icon} ${ticket.name}</h3>
+        <div class="ticket-quickview-info">
+          ${ticket.date ? `<p>📅 ${ticket.date.substring(5).replace('-', '/')}</p>` : ''}
+          ${ticket.location ? `<p>📍 ${ticket.location}</p>` : ''}
+          ${ticket.note ? `<p class="ticket-quickview-note">${ticket.note}</p>` : ''}
+        </div>
+        ${hasImages ? `
+          <div class="photo-gallery ticket-quickview-gallery">
+            ${images.map(img => `
+              <div class="photo-item">
+                <img src="${img.data}" alt="票券截圖" onclick="Editor.viewPhoto('${img.data.replace(/'/g, "\\'")}')">
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        <div class="edit-modal-buttons">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">關閉</button>
+          <button class="btn" onclick="this.closest('.edit-modal').remove(); window.location.href='tickets.html';">查看全部票券</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
   },
 
   // 隱藏項目管理
@@ -1417,7 +2142,8 @@ const App = {
         <div class="form-group"><label>備註</label><input type="text" id="tip-note" placeholder="例：需提前預約"></div>
       `,
       notes: `
-        <div class="form-group"><label>筆記內容</label><textarea id="tip-content" rows="3" placeholder="記下重要的事..."></textarea></div>
+        <div class="form-group"><label>標題（選填）</label><input type="text" id="tip-title" placeholder="例：重要提醒"></div>
+        <div class="form-group"><label>筆記內容</label><textarea id="tip-content" rows="8" placeholder="記下重要的事...&#10;&#10;支持多行文字，可以直接貼上長文字" style="min-height:150px;resize:vertical;"></textarea></div>
       `
     };
 
@@ -1471,7 +2197,10 @@ const App = {
         if (!content.item) { alert('請輸入項目名稱'); return; }
         break;
       case 'notes':
-        content = { content: document.getElementById('tip-content').value.trim() };
+        content = {
+          title: document.getElementById('tip-title').value.trim(),
+          content: document.getElementById('tip-content').value.trim()
+        };
         if (!content.content) { alert('請輸入筆記內容'); return; }
         break;
     }
@@ -1489,6 +2218,48 @@ const App = {
     }
   },
 
+  // 編輯筆記彈窗
+  showEditCustomNote(noteId) {
+    const customTips = Editor.getCustomTips();
+    const note = customTips.notes.find(n => n.id === noteId);
+    if (!note) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+      <div class="edit-modal-content">
+        <h3>✏️ 編輯筆記</h3>
+        <div class="form-group"><label>標題（選填）</label><input type="text" id="edit-note-title" value="${note.title || ''}" placeholder="例：重要提醒"></div>
+        <div class="form-group"><label>筆記內容</label><textarea id="edit-note-content" rows="8" placeholder="記下重要的事..." style="min-height:150px;resize:vertical;"></textarea></div>
+        <div class="edit-modal-buttons">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
+          <button class="btn" onclick="App.saveEditedNote(${noteId})">💾 儲存</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // 設定內容（需要在 append 後設定，避免 XSS）
+    document.getElementById('edit-note-content').value = note.content || '';
+    document.getElementById('edit-note-content').focus();
+  },
+
+  // 儲存編輯後的筆記
+  saveEditedNote(noteId) {
+    const title = document.getElementById('edit-note-title').value.trim();
+    const content = document.getElementById('edit-note-content').value.trim();
+
+    if (!content) {
+      alert('請輸入筆記內容');
+      return;
+    }
+
+    Editor.updateCustomTip('notes', noteId, { title, content });
+    document.querySelector('.edit-modal').remove();
+    this.initTipsPage();
+    Share.showToast('✅ 筆記已更新');
+  },
+
   // ==================
   // 拖曳排序功能
   // ==================
@@ -1496,12 +2267,25 @@ const App = {
   initDragAndDrop() {
     const cards = document.querySelectorAll('.draggable-card');
     let draggedCard = null;
+    let canDrag = false;
 
     cards.forEach(card => {
       card.setAttribute('draggable', 'true');
 
+      // 只有從 drag-handle 開始拖曳才允許
+      card.addEventListener('mousedown', (e) => {
+        const handle = e.target.closest('.drag-handle');
+        canDrag = !!handle;
+      });
+
       // 桌面端拖曳
       card.addEventListener('dragstart', (e) => {
+        // 防止從 input/textarea/button 開始拖曳
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'button' || !canDrag) {
+          e.preventDefault();
+          return;
+        }
         draggedCard = card;
         card.classList.add('dragging');
         e.dataTransfer.effectAllowed = 'move';
@@ -1739,7 +2523,7 @@ const App = {
       <div class="ticket-item" data-ticket-id="${ticket.id}">
         <div class="ticket-item-header">
           <span class="ticket-name"><span class="ticket-seq">${seqNum}.</span> ${ticket.name}</span>
-          <button class="add-btn" onclick="App.editTicket(${ticket.id})">編輯</button>
+          <button class="btn btn-small btn-outline" onclick="App.editTicket(${ticket.id})">✏️ 編輯</button>
         </div>
         <div class="ticket-info-row">
           ${ticket.date ? `<span class="ticket-date">📅 ${this.formatTicketDate(ticket.date)}</span>` : ''}
@@ -1748,7 +2532,7 @@ const App = {
         ${ticket.note ? `<p class="ticket-note">${ticket.note}</p>` : ''}
     `;
 
-    // 圖片區域
+    // 圖片區域（比照今日照片風格）
     if (hasImages) {
       html += `<div class="photo-gallery ticket-photo-gallery">`;
       images.forEach(img => {
@@ -1764,13 +2548,14 @@ const App = {
       html += `
           <div class="photo-add" onclick="App.uploadTicketImageFor(${ticket.id})">
             <span>➕</span>
+            <span>新增</span>
           </div>
         </div>
       `;
     } else {
       html += `
-        <button class="ticket-upload-btn" onclick="App.uploadTicketImageFor(${ticket.id})">
-          📷 上傳截圖
+        <button class="btn btn-small btn-outline" style="width:100%;margin-top:8px;" onclick="App.uploadTicketImageFor(${ticket.id})">
+          📷 上傳票券截圖
         </button>
       `;
     }
@@ -1943,7 +2728,7 @@ const App = {
     // 清理
     window._ticketTempImages = [];
     document.querySelector('.edit-modal').remove();
-    this.initTipsPage();
+    this.refreshTicketsDisplay();
     Share.showToast('✅ 票券已新增');
   },
 
@@ -1973,7 +2758,7 @@ const App = {
     }
 
     document.querySelector('.edit-modal').remove();
-    this.initTipsPage();
+    this.refreshTicketsDisplay();
     Share.showToast('✅ 票券已儲存');
   },
 
@@ -2066,14 +2851,14 @@ const App = {
     });
 
     document.querySelector('.edit-modal').remove();
-    this.initTipsPage();
+    this.refreshTicketsDisplay();
     Share.showToast('✅ 票券已更新');
   },
 
   deleteTicket(ticketId) {
     Editor.deleteTicket(ticketId);
     document.querySelector('.edit-modal')?.remove();
-    this.initTipsPage();
+    this.refreshTicketsDisplay();
     Share.showToast('✅ 票券已刪除');
   },
 
@@ -2113,7 +2898,7 @@ const App = {
         reader.onload = (event) => {
           Editor.compressImage(event.target.result, 600, 0.7, (compressed) => {
             Editor.addTicketImage(ticketId, compressed);
-            this.initTipsPage();
+            this.refreshTicketsDisplay();
             Share.showToast('✅ 圖片已新增');
           });
         };
@@ -2126,7 +2911,7 @@ const App = {
 
   deleteTicketImage(ticketId, imageId) {
     Editor.deleteTicketImage(ticketId, imageId);
-    this.initTipsPage();
+    this.refreshTicketsDisplay();
     Share.showToast('✅ 圖片已刪除');
   },
 
