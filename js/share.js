@@ -146,52 +146,34 @@ ${schedule.activities.slice(0, 3).map(a => `• ${a.time} ${a.activity}`).join('
   // ==================
 
   showShareMenu() {
-    const baseUrl = window.location.href.split('?')[0];
     const modal = document.createElement('div');
     modal.className = 'share-modal';
     modal.innerHTML = `
       <div class="share-modal-content">
-        <h3>📤 分享與同步</h3>
+        <h3>💾 資料同步</h3>
 
         <div class="share-section">
-          <h4>🔗 分享網站</h4>
-          <p class="share-hint">讓另一半也能看到行程</p>
-          <button class="btn btn-full" onclick="Share.shareLink(); this.closest('.share-modal').remove();">
-            📱 分享連結
-          </button>
-          <button class="btn btn-full btn-outline" onclick="Share.showQRCodeModal('${baseUrl}', '掃描開啟網站')">
-            📷 顯示 QR Code
-          </button>
-        </div>
-
-        <div class="share-section">
-          <h4>💾 資料同步</h4>
-          <p class="share-hint">同步編輯內容、照片到另一台裝置</p>
-          <div class="share-sync-info">
-            <span>📦 原始：${(Editor.getDataSize() / 1024).toFixed(0)} KB → 壓縮後約 ${(CompressSync.getCompressedSize() / 1024).toFixed(0)} KB</span>
-          </div>
-
-          <p style="font-size:0.8rem;color:var(--primary);margin:12px 0 8px;font-weight:600;">📦 壓縮同步（推薦，含照片）</p>
-          <button class="btn btn-full" onclick="CompressSync.showCompressExportModal(); this.closest('.share-modal').remove();">
-            📤 壓縮匯出（複製給手機）
+          <h4>📱 手機同步（推薦）</h4>
+          <p class="share-hint">不含照片，用 LINE 傳送</p>
+          <button class="btn btn-full" onclick="CompressSync.quickExport(); this.closest('.share-modal').remove();">
+            📤 複製同步碼
           </button>
           <button class="btn btn-full btn-outline" onclick="CompressSync.showCompressImportModal(); this.closest('.share-modal').remove();">
-            📥 貼上壓縮資料匯入
-          </button>
-
-          <p style="font-size:0.8rem;color:#666;margin:16px 0 8px;">📁 檔案方式</p>
-          <button class="btn btn-full btn-outline" onclick="Editor.downloadExport(); Share.showToast('📁 檔案已下載');" style="font-size:0.85rem;">
-            ⬇️ 匯出 JSON 檔案
-          </button>
-          <button class="btn btn-full btn-outline" onclick="Editor.triggerImport()" style="font-size:0.85rem;">
-            ⬆️ 匯入 JSON 檔案
+            📥 貼上同步碼
           </button>
         </div>
 
         <div class="share-section">
-          <h4>📊 分享進度</h4>
-          <button class="btn btn-full btn-outline" onclick="Share.shareMissionProgress(); this.closest('.share-modal').remove();">
-            🎯 分享任務進度
+          <h4>📁 檔案備份</h4>
+          <p class="share-hint">用 Email 或雲端傳送</p>
+          <button class="btn btn-full" onclick="Share.downloadSmallBackup();">
+            ⬇️ 下載輕量版（不含照片）
+          </button>
+          <button class="btn btn-full btn-outline" onclick="Editor.downloadExport(); Share.showToast('📁 完整備份已下載');">
+            ⬇️ 下載完整版（含照片）
+          </button>
+          <button class="btn btn-full btn-outline" onclick="Editor.triggerImport()">
+            ⬆️ 匯入備份檔
           </button>
         </div>
 
@@ -230,6 +212,33 @@ ${schedule.activities.slice(0, 3).map(a => `• ${a.time} ${a.activity}`).join('
       document.body.removeChild(textarea);
       this.showToast('✅ 已複製資料');
     }
+  },
+
+  // ==================
+  // 輕量備份（不含照片）
+  // ==================
+
+  downloadSmallBackup() {
+    let dataObj = JSON.parse(Editor.exportData());
+
+    // 移除照片資料
+    delete dataObj.coverPhoto;
+    if (dataObj.hotelImages) dataObj.hotelImages = {};
+    if (dataObj.ticketImages) dataObj.ticketImages = {};
+
+    const data = JSON.stringify(dataObj, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    const sizeKB = (data.length / 1024).toFixed(1);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `honeymoon-lite-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+    this.showToast(`📁 輕量版已下載 (${sizeKB} KB)`);
   },
 
   // ==================

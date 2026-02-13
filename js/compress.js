@@ -3,19 +3,36 @@ var LZString=function(){function o(o,r){if(!t[o]){t[o]={};for(var n=0;n<o.length
 
 // 壓縮同步功能
 const CompressSync = {
-  // 壓縮匯出
-  compressExport() {
-    const data = Editor.exportData();
-    const compressed = LZString.compressToBase64(data);
+  // 壓縮匯出 (使用 URI 安全編碼，避免 LINE 破壞)
+  compressExport(skipPhotos = false) {
+    let dataObj = JSON.parse(Editor.exportData());
+
+    // 移除照片資料以減少大小
+    if (skipPhotos) {
+      delete dataObj.coverPhoto;
+      if (dataObj.hotelImages) dataObj.hotelImages = {};
+      if (dataObj.ticketImages) dataObj.ticketImages = {};
+    }
+
+    const data = JSON.stringify(dataObj);
+    // 使用 EncodedURIComponent，只包含 URL 安全字元
+    const compressed = LZString.compressToEncodedURIComponent(data);
     return compressed;
   },
 
   // 解壓縮匯入
   decompressImport(compressed, skipPhotos = false) {
     try {
-      const decompressed = LZString.decompressFromBase64(compressed);
+      // 先嘗試 URI 編碼格式
+      let decompressed = LZString.decompressFromEncodedURIComponent(compressed);
+
+      // 如果失敗，嘗試 Base64 格式（向後相容）
       if (!decompressed) {
-        return { success: false, message: '❌ 解壓縮失敗，資料可能已損壞' };
+        decompressed = LZString.decompressFromBase64(compressed);
+      }
+
+      if (!decompressed) {
+        return { success: false, message: '❌ 解壓縮失敗，資料可能已損壞或被截斷\n\n請確認：\n1. 完整複製所有文字\n2. LINE 沒有截斷訊息' };
       }
       return Editor.importData(decompressed, skipPhotos);
     } catch (e) {
@@ -24,75 +41,44 @@ const CompressSync = {
     }
   },
 
-  // 取得壓縮後大小
-  getCompressedSize() {
-    const compressed = this.compressExport();
-    return compressed.length;
-  },
+  // 快速匯出（不含照片，直接複製）
+  async quickExport() {
+    const compressed = this.compressExport(true); // 不含照片
+    const charCount = compressed.length;
 
-  // 顯示壓縮匯出 Modal
-  showCompressExportModal() {
-    const original = Editor.exportData();
-    const compressed = this.compressExport();
-    const originalKB = (original.length / 1024).toFixed(1);
-    const compressedKB = (compressed.length / 1024).toFixed(1);
-    const ratio = ((1 - compressed.length / original.length) * 100).toFixed(0);
-
-    const modal = document.createElement('div');
-    modal.className = 'edit-modal';
-    modal.innerHTML = `
-      <div class="edit-modal-content">
-        <h3>📦 壓縮匯出</h3>
-        <div style="background:#f5f5f5;padding:12px;border-radius:8px;margin-bottom:12px;">
-          <p style="margin:0;font-size:0.9rem;">
-            📊 原始大小：<strong>${originalKB} KB</strong><br>
-            📦 壓縮後：<strong>${compressedKB} KB</strong><br>
-            💾 節省：<strong>${ratio}%</strong>
-          </p>
-        </div>
-        <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">
-          步驟：<br>
-          1. 點「複製壓縮資料」<br>
-          2. 貼到 LINE 傳給自己<br>
-          3. 手機複製後用「貼上壓縮資料」匯入
-        </p>
-        <textarea id="compress-export-text" rows="4" readonly style="width:100%;font-size:11px;font-family:monospace;word-break:break-all;">${compressed}</textarea>
-        <div class="edit-modal-buttons" style="margin-top:12px;">
-          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">關閉</button>
-          <button class="btn" onclick="CompressSync.copyCompressed()">📋 複製壓縮資料</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(modal);
-  },
-
-  // 複製壓縮資料
-  async copyCompressed() {
-    const compressed = this.compressExport();
     try {
       await navigator.clipboard.writeText(compressed);
-      Share.showToast('✅ 已複製壓縮資料');
-    } catch (e) {
-      const textarea = document.getElementById('compress-export-text');
-      if (textarea) {
-        textarea.select();
-        document.execCommand('copy');
-        Share.showToast('✅ 已複製壓縮資料');
+      Share.showToast(`✅ 已複製同步碼 (${charCount} 字)`);
+
+      if (charCount > 10000) {
+        setTimeout(() => {
+          alert(`⚠️ 同步碼有 ${charCount} 字\n\nLINE 可能會截斷！建議：\n1. 用 LINE Keep 儲存\n2. 或用 Email 傳送\n3. 或下載備份檔`);
+        }, 500);
       }
+    } catch (e) {
+      // 降級方案
+      const textarea = document.createElement('textarea');
+      textarea.value = compressed;
+      textarea.style.cssText = 'position:fixed;opacity:0;';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      Share.showToast(`✅ 已複製同步碼 (${charCount} 字)`);
     }
   },
 
-  // 顯示壓縮匯入 Modal
+  // 顯示匯入 Modal
   showCompressImportModal() {
     const modal = document.createElement('div');
     modal.className = 'edit-modal';
     modal.innerHTML = `
       <div class="edit-modal-content">
-        <h3>📦 貼上壓縮資料匯入</h3>
-        <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">
-          從 LINE 複製壓縮資料，貼到下方框框
+        <h3>📥 貼上同步碼</h3>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:8px;">
+          從 LINE 或其他地方複製同步碼，貼到下方
         </p>
-        <textarea id="compress-import-text" rows="6" placeholder="貼上壓縮資料（一長串英數字）..." style="width:100%;font-size:11px;font-family:monospace;"></textarea>
+        <textarea id="compress-import-text" rows="5" placeholder="貼上同步碼..." style="width:100%;font-size:11px;font-family:monospace;"></textarea>
         <div class="edit-modal-buttons" style="margin-top:12px;">
           <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
           <button class="btn" onclick="CompressSync.processCompressImport()">📥 匯入</button>
@@ -109,7 +95,7 @@ const CompressSync = {
     const text = textarea ? textarea.value.trim() : '';
 
     if (!text) {
-      alert('❌ 請貼上壓縮資料');
+      alert('❌ 請貼上同步碼');
       return;
     }
 
