@@ -287,6 +287,22 @@ const Editor = {
     }
   },
 
+  updateHotelLink(hotelName, linkId, updates) {
+    const links = this.loadHotelLinks();
+    if (links[hotelName]) {
+      const linkIndex = links[hotelName].findIndex(l => l.id === linkId);
+      if (linkIndex !== -1) {
+        links[hotelName][linkIndex] = {
+          ...links[hotelName][linkIndex],
+          ...updates,
+          updatedAt: new Date().toISOString()
+        };
+        this.saveHotelLinks(links);
+      }
+    }
+    return links;
+  },
+
   // ==================
   // 自訂打包清單
   // ==================
@@ -729,27 +745,114 @@ const Editor = {
     return JSON.stringify(data);
   },
 
-  importData(jsonString) {
+  importData(jsonString, skipPhotos = false) {
     try {
-      const data = JSON.parse(jsonString);
+      // 檢查是否為空
+      if (!jsonString || jsonString.trim() === '') {
+        return { success: false, message: '❌ 檔案是空的' };
+      }
 
-      if (data.edits) localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.edits));
-      if (data.photos) localStorage.setItem(this.PHOTOS_KEY, JSON.stringify(data.photos));
-      if (data.notes) localStorage.setItem(this.NOTES_KEY, JSON.stringify(data.notes));
-      if (data.dayReminders) localStorage.setItem(this.DAY_REMINDERS_KEY, JSON.stringify(data.dayReminders));
-      if (data.customPacking) localStorage.setItem(this.CUSTOM_PACKING_KEY, JSON.stringify(data.customPacking));
-      if (data.customTips) localStorage.setItem(this.CUSTOM_TIPS_KEY, JSON.stringify(data.customTips));
-      if (data.customHotels) localStorage.setItem(this.CUSTOM_HOTELS_KEY, JSON.stringify(data.customHotels));
-      if (data.hotelImages) localStorage.setItem(this.HOTEL_IMAGES_KEY, JSON.stringify(data.hotelImages));
-      if (data.hotelLinks) localStorage.setItem(this.HOTEL_LINKS_KEY, JSON.stringify(data.hotelLinks));
-      if (data.tickets) localStorage.setItem(this.TICKETS_KEY, JSON.stringify(data.tickets));
-      if (data.cardOrder) localStorage.setItem(this.CARD_ORDER_KEY, JSON.stringify(data.cardOrder));
-      if (data.expenses) localStorage.setItem('honeymoon_expenses', data.expenses);
-      if (data.packing) localStorage.setItem('honeymoon_packing', data.packing);
+      // 嘗試解析 JSON
+      let data;
+      try {
+        data = JSON.parse(jsonString);
+      } catch (parseError) {
+        console.error('JSON 解析錯誤:', parseError);
+        return { success: false, message: '❌ JSON 格式錯誤：' + parseError.message };
+      }
 
-      return { success: true, message: '✅ 資料匯入成功！' };
+      // 檢查是否為有效的資料結構
+      if (typeof data !== 'object' || data === null) {
+        return { success: false, message: '❌ 資料格式不正確（需要是物件）' };
+      }
+
+      // 檢查是否為本應用程式的資料
+      const hasValidData = data.edits || data.photos || data.notes || data.customTips ||
+                           data.tickets || data.expenses || data.version;
+      if (!hasValidData) {
+        return { success: false, message: '❌ 這不是蜜月旅行的資料檔案' };
+      }
+
+      // 匯入資料
+      let importedItems = [];
+
+      if (data.edits) {
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data.edits));
+        importedItems.push('編輯');
+      }
+
+      // 照片相關資料（可選擇跳過）
+      if (!skipPhotos) {
+        if (data.photos && Object.keys(data.photos).length > 0) {
+          localStorage.setItem(this.PHOTOS_KEY, JSON.stringify(data.photos));
+          importedItems.push('照片');
+        }
+        if (data.hotelImages && Object.keys(data.hotelImages).length > 0) {
+          localStorage.setItem(this.HOTEL_IMAGES_KEY, JSON.stringify(data.hotelImages));
+          importedItems.push('住宿照片');
+        }
+        if (data.tickets) {
+          // 票券可能包含圖片
+          localStorage.setItem(this.TICKETS_KEY, JSON.stringify(data.tickets));
+          importedItems.push('票券');
+        }
+      } else {
+        // 跳過照片時，票券只匯入不含圖片的部分
+        if (data.tickets) {
+          const ticketsWithoutImages = data.tickets.map(t => ({ ...t, images: [] }));
+          localStorage.setItem(this.TICKETS_KEY, JSON.stringify(ticketsWithoutImages));
+          importedItems.push('票券(不含圖片)');
+        }
+      }
+
+      if (data.notes) {
+        localStorage.setItem(this.NOTES_KEY, JSON.stringify(data.notes));
+        importedItems.push('筆記');
+      }
+      if (data.dayReminders) {
+        localStorage.setItem(this.DAY_REMINDERS_KEY, JSON.stringify(data.dayReminders));
+        importedItems.push('提醒');
+      }
+      if (data.customPacking) {
+        localStorage.setItem(this.CUSTOM_PACKING_KEY, JSON.stringify(data.customPacking));
+        importedItems.push('打包清單');
+      }
+      if (data.customTips) {
+        localStorage.setItem(this.CUSTOM_TIPS_KEY, JSON.stringify(data.customTips));
+        importedItems.push('旅遊須知');
+      }
+      if (data.customHotels) {
+        localStorage.setItem(this.CUSTOM_HOTELS_KEY, JSON.stringify(data.customHotels));
+        importedItems.push('住宿備註');
+      }
+      if (data.hotelLinks) {
+        localStorage.setItem(this.HOTEL_LINKS_KEY, JSON.stringify(data.hotelLinks));
+        importedItems.push('住宿連結');
+      }
+      if (data.cardOrder) {
+        localStorage.setItem(this.CARD_ORDER_KEY, JSON.stringify(data.cardOrder));
+      }
+      if (data.expenses) {
+        localStorage.setItem('honeymoon_expenses', data.expenses);
+        importedItems.push('花費');
+      }
+      if (data.packing) {
+        localStorage.setItem('honeymoon_packing', data.packing);
+      }
+
+      const importTime = data.exportedAt ? new Date(data.exportedAt).toLocaleString('zh-TW') : '未知';
+      const skipMsg = skipPhotos ? '\n（已跳過照片資料）' : '';
+      return {
+        success: true,
+        message: `✅ 資料匯入成功！${skipMsg}\n匯出時間：${importTime}\n\n已匯入：${importedItems.join('、')}`
+      };
     } catch (e) {
-      return { success: false, message: '❌ 資料格式錯誤' };
+      console.error('匯入錯誤:', e);
+      // 檢查是否為 localStorage 空間不足
+      if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+        return { success: false, message: '❌ 儲存空間不足！\n\n請嘗試「僅匯入設定」選項，\n或清除瀏覽器資料後重試' };
+      }
+      return { success: false, message: '❌ 匯入失敗：' + e.message };
     }
   },
 
@@ -766,29 +869,84 @@ const Editor = {
     URL.revokeObjectURL(url);
   },
 
-  triggerImport(callback) {
+  triggerImport(callback, skipPhotos = false) {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.json';
+    input.accept = '.json,application/json,text/plain';
 
     input.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
+        // 檢查檔案大小
+        const fileSizeMB = (file.size / 1024 / 1024).toFixed(1);
+
         const reader = new FileReader();
+
+        reader.onerror = () => {
+          alert(`❌ 讀取檔案失敗\n檔案大小: ${fileSizeMB} MB\n\n請嘗試「貼上文字匯入」選項`);
+        };
+
         reader.onload = (event) => {
-          const result = this.importData(event.target.result);
-          alert(result.message);
-          if (result.success && callback) {
-            callback();
-          } else if (result.success) {
-            location.reload();
+          try {
+            const result = this.importData(event.target.result, skipPhotos);
+            alert(result.message);
+            if (result.success && callback) {
+              callback();
+            } else if (result.success) {
+              location.reload();
+            }
+          } catch (err) {
+            alert(`❌ 匯入處理失敗\n${err.message}\n\n檔案大小: ${fileSizeMB} MB`);
           }
         };
-        reader.readAsText(file);
+
+        reader.readAsText(file, 'UTF-8');
       }
     };
 
     input.click();
+  },
+
+  // 貼上文字匯入（手機友善）
+  showPasteImportModal(skipPhotos = false) {
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+      <div class="edit-modal-content">
+        <h3>📋 貼上資料匯入</h3>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">
+          步驟：<br>
+          1. 用記事本/備忘錄開啟 JSON 檔<br>
+          2. 全選複製內容<br>
+          3. 貼到下方框框
+        </p>
+        <textarea id="paste-import-text" rows="8" placeholder="貼上 JSON 內容..." style="width:100%;font-size:12px;font-family:monospace;"></textarea>
+        <div class="edit-modal-buttons" style="margin-top:12px;">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
+          <button class="btn" onclick="Editor.processPasteImport(${skipPhotos})">匯入</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('paste-import-text').focus();
+  },
+
+  processPasteImport(skipPhotos = false) {
+    const textarea = document.getElementById('paste-import-text');
+    const text = textarea ? textarea.value.trim() : '';
+
+    if (!text) {
+      alert('❌ 請貼上資料內容');
+      return;
+    }
+
+    const result = this.importData(text, skipPhotos);
+    alert(result.message);
+
+    if (result.success) {
+      document.querySelector('.edit-modal').remove();
+      location.reload();
+    }
   },
 
   // 計算資料大小（用於判斷是否可用 URL 同步）

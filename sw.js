@@ -1,5 +1,5 @@
 // Service Worker for 蜜月旅遊網站
-const CACHE_NAME = 'honeymoon-trip-v36';
+const CACHE_NAME = 'honeymoon-trip-v49';
 
 // 需要快取的資源列表
 const ASSETS_TO_CACHE = [
@@ -96,7 +96,7 @@ self.addEventListener('activate', event => {
   );
 });
 
-// 攔截請求 - 優先使用快取
+// 攔截請求 - CSS/JS 優先網路，其他優先快取
 self.addEventListener('fetch', event => {
   // 只處理 GET 請求
   if (event.request.method !== 'GET') return;
@@ -104,42 +104,61 @@ self.addEventListener('fetch', event => {
   // 忽略非同源請求（如 Google Maps）
   if (!event.request.url.startsWith(self.location.origin)) return;
 
-  event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        if (cachedResponse) {
-          // 快取命中，返回快取
-          console.log('[Service Worker] Serving from cache:', event.request.url);
-          return cachedResponse;
-        }
+  const url = new URL(event.request.url);
+  const isVersionedAsset = url.search.includes('v=') ||
+                           url.pathname.endsWith('.css') ||
+                           url.pathname.endsWith('.js');
 
-        // 快取未命中，發送網路請求
-        console.log('[Service Worker] Fetching:', event.request.url);
-        return fetch(event.request)
-          .then(response => {
-            // 檢查是否為有效響應
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // 複製響應（因為響應只能使用一次）
+  if (isVersionedAsset) {
+    // CSS/JS 檔案：網路優先策略
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          if (response && response.status === 200) {
             const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(event.request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          // 網路失敗時使用快取
+          return caches.match(event.request);
+        })
+    );
+  } else {
+    // 其他資源：快取優先策略
+    event.respondWith(
+      caches.match(event.request)
+        .then(cachedResponse => {
+          if (cachedResponse) {
+            console.log('[Service Worker] Serving from cache:', event.request.url);
+            return cachedResponse;
+          }
 
-            // 將新資源加入快取
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
+          console.log('[Service Worker] Fetching:', event.request.url);
+          return fetch(event.request)
+            .then(response => {
+              if (!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+              }
 
-            return response;
-          })
-          .catch(err => {
-            console.error('[Service Worker] Fetch failed:', err);
-            // 離線時返回首頁
-            return caches.match('./index.html');
-          });
-      })
-  );
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  cache.put(event.request, responseToCache);
+                });
+
+              return response;
+            })
+            .catch(err => {
+              console.error('[Service Worker] Fetch failed:', err);
+              return caches.match('./index.html');
+            });
+        })
+    );
+  }
 });
 
 // 接收來自頁面的訊息

@@ -811,7 +811,10 @@ const App = {
               ${hotelLinks.length > 0 ? hotelLinks.map(link => `
                 <div class="hotel-link-item">
                   <a href="${link.url}" target="_blank" rel="noopener">${link.title || link.url}</a>
-                  <button class="link-delete" onclick="App.deleteHotelLink('${hotel.name.replace(/'/g, "\\'")}', ${link.id}, ${idx})">✕</button>
+                  <div class="link-actions">
+                    <button class="link-edit" onclick="App.showEditHotelLinkModal('${hotel.name.replace(/'/g, "\\'")}', ${link.id}, ${idx})" title="編輯">✏️</button>
+                    <button class="link-delete" onclick="App.deleteHotelLink('${hotel.name.replace(/'/g, "\\'")}', ${link.id}, ${idx})" title="刪除">✕</button>
+                  </div>
                 </div>
               `).join('') : '<p class="no-links">尚無連結</p>'}
             </div>
@@ -819,9 +822,16 @@ const App = {
 
           <!-- 我的備註 -->
           <div class="hotel-custom-note">
-            <label>📝 我的備註</label>
-            <textarea class="note-textarea-small" id="hotel-note-${idx}" placeholder="記錄訂房編號、聯絡方式等...">${customNote}</textarea>
-            <button class="btn btn-small" onclick="App.saveHotelNote('${hotel.name}', ${idx})">💾 儲存備註</button>
+            <div class="section-header">
+              <label>📝 我的備註</label>
+              <button class="add-btn" onclick="App.showEditHotelNoteModal('${hotel.name.replace(/'/g, "\\'")}', ${idx})">編輯</button>
+            </div>
+            <div class="hotel-note-display">
+              ${customNote
+                ? `<div class="note-content">${customNote.replace(/\n/g, '<br>')}</div>`
+                : `<div class="note-empty">點擊「編輯」新增備註</div>`
+              }
+            </div>
           </div>
 
           <div class="hotel-actions">
@@ -915,11 +925,37 @@ const App = {
     }
   },
 
+  // 顯示編輯住宿備註彈窗
+  showEditHotelNoteModal(hotelName, idx) {
+    const currentNote = Editor.getHotelNote(hotelName);
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+      <div class="edit-modal-content">
+        <h3>📝 編輯備註</h3>
+        <p style="font-size:0.85rem;color:#666;margin-bottom:12px;">${hotelName}</p>
+        <textarea id="edit-hotel-note" rows="6" placeholder="記錄訂房編號、聯絡方式、特殊需求等..." style="width:100%;min-height:120px;padding:14px;border:1px solid #ddd;border-radius:12px;font-size:0.9rem;resize:vertical;"></textarea>
+        <div class="edit-modal-buttons" style="margin-top:12px;">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
+          <button class="btn" onclick="App.saveHotelNote('${hotelName.replace(/'/g, "\\'")}', ${idx})">💾 儲存</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const textarea = document.getElementById('edit-hotel-note');
+    textarea.value = currentNote;
+    textarea.focus();
+  },
+
   // 儲存住宿備註
   saveHotelNote(hotelName, idx) {
-    const textarea = document.getElementById(`hotel-note-${idx}`);
+    const textarea = document.getElementById('edit-hotel-note');
     if (textarea) {
       Editor.setHotelNote(hotelName, textarea.value);
+      document.querySelector('.edit-modal').remove();
+      this.initHotelsPage();
       Share.showToast('✅ 備註已儲存');
     }
   },
@@ -1010,6 +1046,50 @@ const App = {
       Editor.deleteHotelLink(hotelName, linkId);
       this.initHotelsPage();
     }
+  },
+
+  // 顯示編輯連結彈窗
+  showEditHotelLinkModal(hotelName, linkId, idx) {
+    const links = Editor.getHotelLinks(hotelName);
+    const link = links.find(l => l.id === linkId);
+    if (!link) return;
+
+    const modal = document.createElement('div');
+    modal.className = 'edit-modal';
+    modal.innerHTML = `
+      <div class="edit-modal-content">
+        <h3>✏️ 編輯連結</h3>
+        <div class="form-group">
+          <label>連結名稱</label>
+          <input type="text" id="edit-link-title" value="${link.title || ''}" placeholder="例：訂房確認信">
+        </div>
+        <div class="form-group">
+          <label>連結網址 *</label>
+          <input type="url" id="edit-link-url" value="${link.url || ''}" placeholder="https://...">
+        </div>
+        <div class="edit-modal-buttons">
+          <button class="btn btn-outline" onclick="this.closest('.edit-modal').remove()">取消</button>
+          <button class="btn" onclick="App.updateHotelLink('${hotelName.replace(/'/g, "\\'")}', ${linkId}, ${idx})">💾 儲存</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('edit-link-title').focus();
+  },
+
+  // 更新住宿連結
+  updateHotelLink(hotelName, linkId, idx) {
+    const url = document.getElementById('edit-link-url').value.trim();
+    if (!url) { alert('請輸入連結網址'); return; }
+
+    Editor.updateHotelLink(hotelName, linkId, {
+      title: document.getElementById('edit-link-title').value.trim() || url,
+      url: url
+    });
+
+    document.querySelector('.edit-modal').remove();
+    this.initHotelsPage();
+    Share.showToast('✅ 連結已更新');
   },
 
   // 打包清單頁面（可編輯版）
@@ -1430,7 +1510,7 @@ const App = {
         </div>
         ${noteCount >= 3 ? `
         <div class="note-search-bar">
-          <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." oninput="App.filterNotes()" value="${this.noteSearchQuery || ''}">
+          <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." value="${this.noteSearchQuery || ''}">
           ${this.noteSearchQuery ? '<button class="note-search-clear" onclick="App.clearNoteSearch()">✕</button>' : ''}
         </div>
         ` : ''}
@@ -1482,17 +1562,47 @@ const App = {
         html += '<p class="tips-empty">還沒有筆記，點擊「+ 新增」記錄重要事項</p>';
       }
       notesEl.innerHTML = html;
+
+      // 初始化搜尋框事件
+      this.initNoteSearchInput();
     }
   },
 
   // 筆記搜尋狀態
   noteSearchQuery: '',
+  isComposing: false, // IME 輸入法組字中
+
+  // 初始化搜尋框事件（支援注音等 IME 輸入法）
+  initNoteSearchInput() {
+    const input = document.getElementById('note-search-input');
+    if (!input || input.dataset.bindEvents) return;
+
+    input.dataset.bindEvents = 'true';
+
+    // IME 開始組字
+    input.addEventListener('compositionstart', () => {
+      this.isComposing = true;
+    });
+
+    // IME 組字結束
+    input.addEventListener('compositionend', () => {
+      this.isComposing = false;
+      this.filterNotes();
+    });
+
+    // 一般輸入（非 IME 時才觸發搜尋）
+    input.addEventListener('input', () => {
+      if (!this.isComposing) {
+        this.filterNotes();
+      }
+    });
+  },
 
   // 搜尋筆記
   filterNotes() {
     const input = document.getElementById('note-search-input');
     this.noteSearchQuery = input ? input.value.trim() : '';
-    this.renderNotesCard();
+    this.renderNotesCardContent();
   },
 
   // 清除搜尋
@@ -1519,7 +1629,7 @@ const App = {
       </div>
       ${noteCount >= 3 ? `
       <div class="note-search-bar">
-        <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." oninput="App.filterNotes()" value="${this.noteSearchQuery || ''}">
+        <input type="text" id="note-search-input" placeholder="🔍 搜尋筆記..." value="${this.noteSearchQuery || ''}">
         ${this.noteSearchQuery ? '<button class="note-search-clear" onclick="App.clearNoteSearch()">✕</button>' : ''}
       </div>
       ` : ''}
@@ -1568,12 +1678,82 @@ const App = {
     }
     notesEl.innerHTML = html;
 
-    // 保持搜尋框焦點
-    if (this.noteSearchQuery) {
-      const input = document.getElementById('note-search-input');
-      if (input) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
+    // 初始化搜尋框事件
+    this.initNoteSearchInput();
+  },
+
+  // 只更新筆記列表內容（不重建搜尋框，避免 IME 中斷）
+  renderNotesCardContent() {
+    const customTips = Editor.getCustomTips();
+    let listContainer = document.getElementById('tips-list-notes');
+    const notesEl = document.getElementById('tips-notes');
+
+    if (!notesEl) return;
+
+    // 如果列表容器不存在，找到或創建一個
+    if (!listContainer) {
+      listContainer = notesEl.querySelector('.tips-list, .tips-empty');
+    }
+
+    const query = (this.noteSearchQuery || '').toLowerCase();
+    const filteredNotes = customTips.notes && customTips.notes.length > 0
+      ? (query
+          ? customTips.notes.filter(n =>
+              (n.title || '').toLowerCase().includes(query) ||
+              (n.content || '').toLowerCase().includes(query)
+            )
+          : customTips.notes)
+      : [];
+
+    let listHtml = '';
+    if (filteredNotes.length > 0) {
+      listHtml = '<ul class="tips-list" id="tips-list-notes">';
+      filteredNotes.forEach(n => {
+        let displayContent = (n.content || '').replace(/\n/g, '<br>');
+        let displayTitle = n.title || '';
+
+        if (query) {
+          const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+          displayContent = displayContent.replace(regex, '<mark>$1</mark>');
+          displayTitle = displayTitle.replace(regex, '<mark>$1</mark>');
+        }
+
+        const createdDate = n.createdAt ? new Date(n.createdAt).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+        listHtml += `<li class="tips-item note-item" data-item-id="custom-${n.id}">
+          <div class="tips-item-content">
+            ${displayTitle ? `<div class="note-title">${displayTitle}</div>` : ''}
+            <div class="note-content">${displayContent}</div>
+            ${createdDate ? `<div class="note-time">${createdDate}</div>` : ''}
+          </div>
+          <div class="note-actions">
+            <button class="item-edit-small" onclick="App.showEditCustomNote(${n.id})" title="編輯">✏️</button>
+            <button class="item-delete-small" onclick="App.removeCustomTip('notes', ${n.id})">✕</button>
+          </div>
+        </li>`;
+      });
+      listHtml += '</ul>';
+    } else if (query) {
+      listHtml = `<p class="tips-empty">找不到符合「${query}」的筆記</p>`;
+    } else if (!customTips.notes || customTips.notes.length === 0) {
+      listHtml = '<p class="tips-empty">還沒有筆記，點擊「+ 新增」記錄重要事項</p>';
+    }
+
+    // 只更新列表部分
+    const existingList = notesEl.querySelector('.tips-list, .tips-empty');
+    if (existingList) {
+      existingList.outerHTML = listHtml;
+    } else {
+      notesEl.insertAdjacentHTML('beforeend', listHtml);
+    }
+
+    // 更新清除按鈕顯示
+    const searchBar = notesEl.querySelector('.note-search-bar');
+    if (searchBar) {
+      const clearBtn = searchBar.querySelector('.note-search-clear');
+      if (this.noteSearchQuery && !clearBtn) {
+        searchBar.insertAdjacentHTML('beforeend', '<button class="note-search-clear" onclick="App.clearNoteSearch()">✕</button>');
+      } else if (!this.noteSearchQuery && clearBtn) {
+        clearBtn.remove();
       }
     }
   },
@@ -2270,12 +2450,25 @@ const App = {
     let canDrag = false;
 
     cards.forEach(card => {
-      card.setAttribute('draggable', 'true');
+      // 預設不可拖曳，只有按住 drag-handle 時才可拖曳
+      card.setAttribute('draggable', 'false');
 
       // 只有從 drag-handle 開始拖曳才允許
       card.addEventListener('mousedown', (e) => {
         const handle = e.target.closest('.drag-handle');
-        canDrag = !!handle;
+        const isInput = e.target.closest('input, textarea, button');
+        if (handle && !isInput) {
+          card.setAttribute('draggable', 'true');
+          canDrag = true;
+        } else {
+          card.setAttribute('draggable', 'false');
+          canDrag = false;
+        }
+      });
+
+      // 放開滑鼠時重置
+      card.addEventListener('mouseup', () => {
+        card.setAttribute('draggable', 'false');
       });
 
       // 桌面端拖曳
@@ -2284,6 +2477,7 @@ const App = {
         const tag = e.target.tagName.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'button' || !canDrag) {
           e.preventDefault();
+          card.setAttribute('draggable', 'false');
           return;
         }
         draggedCard = card;
@@ -2293,8 +2487,10 @@ const App = {
 
       card.addEventListener('dragend', () => {
         card.classList.remove('dragging');
+        card.setAttribute('draggable', 'false');
         cards.forEach(c => c.classList.remove('drag-over'));
         draggedCard = null;
+        canDrag = false;
         this.saveCardOrder();
       });
 

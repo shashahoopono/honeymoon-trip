@@ -166,15 +166,25 @@ ${schedule.activities.slice(0, 3).map(a => `• ${a.time} ${a.activity}`).join('
 
         <div class="share-section">
           <h4>💾 資料同步</h4>
-          <p class="share-hint">同步編輯內容、照片、任務進度到另一台裝置</p>
+          <p class="share-hint">同步編輯內容、照片到另一台裝置</p>
           <div class="share-sync-info">
-            <span>📦 資料大小：${(Editor.getDataSize() / 1024).toFixed(1)} KB</span>
+            <span>📦 原始：${(Editor.getDataSize() / 1024).toFixed(0)} KB → 壓縮後約 ${(CompressSync.getCompressedSize() / 1024).toFixed(0)} KB</span>
           </div>
-          <button class="btn btn-full" onclick="Editor.downloadExport(); Share.showToast('📁 檔案已下載');">
-            ⬇️ 匯出資料檔案
+
+          <p style="font-size:0.8rem;color:var(--primary);margin:12px 0 8px;font-weight:600;">📦 壓縮同步（推薦，含照片）</p>
+          <button class="btn btn-full" onclick="CompressSync.showCompressExportModal(); this.closest('.share-modal').remove();">
+            📤 壓縮匯出（複製給手機）
           </button>
-          <button class="btn btn-full btn-outline" onclick="Editor.triggerImport()">
-            ⬆️ 匯入資料檔案
+          <button class="btn btn-full btn-outline" onclick="CompressSync.showCompressImportModal(); this.closest('.share-modal').remove();">
+            📥 貼上壓縮資料匯入
+          </button>
+
+          <p style="font-size:0.8rem;color:#666;margin:16px 0 8px;">📁 檔案方式</p>
+          <button class="btn btn-full btn-outline" onclick="Editor.downloadExport(); Share.showToast('📁 檔案已下載');" style="font-size:0.85rem;">
+            ⬇️ 匯出 JSON 檔案
+          </button>
+          <button class="btn btn-full btn-outline" onclick="Editor.triggerImport()" style="font-size:0.85rem;">
+            ⬆️ 匯入 JSON 檔案
           </button>
         </div>
 
@@ -194,6 +204,32 @@ ${schedule.activities.slice(0, 3).map(a => `• ${a.time} ${a.activity}`).join('
       if (e.target === modal) modal.remove();
     };
     document.body.appendChild(modal);
+  },
+
+  // ==================
+  // 複製匯出資料
+  // ==================
+
+  async copyExportData() {
+    try {
+      const data = Editor.exportData();
+      const sizeKB = (data.length / 1024).toFixed(1);
+
+      await navigator.clipboard.writeText(data);
+      this.showToast(`✅ 已複製 ${sizeKB} KB 資料`);
+    } catch (e) {
+      // 降級方案
+      const data = Editor.exportData();
+      const textarea = document.createElement('textarea');
+      textarea.value = data;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      this.showToast('✅ 已複製資料');
+    }
   },
 
   // ==================
